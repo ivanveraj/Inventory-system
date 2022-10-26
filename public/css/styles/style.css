@@ -1,0 +1,151 @@
+.table>tbody {
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+.table>tbody>tr>td {
+    padding: 0.5rem !important;
+    vertical-align: middle !important;
+}
+
+table.dataTable thead th {
+    text-align: center !important;
+}
+
+.dataTables_wrapper {
+    width: 100% !important;
+}
+
+.parsley-errors-list {
+    margin: 0;
+    padding-left: 0;
+    color: red;
+    font-size: 12px;
+}
+
+[type='checkbox']:checked,
+[type='radio']:checked {
+    background-size: unset !important;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.select2-container.select2-selection--single {
+    height: 42px !important;
+}
+
+.select2-container .select2-selection--multiple {
+    min-height: 42px !important;
+    display: flex !important;
+    align-items: center !important;
+    --tw-border-opacity: 1;
+    border-color: rgb(209 213 219 / var(--tw-border-opacity));
+}
+
+.select2-container .select2-selection--single {
+    height: 42px !important;
+    display: flex !important;
+    align-items: center !important;
+    border-color: rgb(209 213 219 / var(--tw-border-opacity));
+    max-width: 220px !important;
+}
+
+span.select2-search.select2-search--inline {
+    width: 100% !important;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 1rem;
+    border-radius: .4rem;
+    display: flex;
+    background-color: #ffffff75;
+    justify-content: center;
+    align-items: center;
+}
+
+.loader_wrapper {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #242f3f;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.loader {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    position: relative;
+    border: 4px solid #Fff;
+    animation: loader 2s infinite ease;
+}
+
+.loader-inner {
+    vertical-align: top;
+    display: inline-block;
+    width: 100%;
+    background-color: #fff;
+    animation: loader-inner 2s infinite ease-in;
+}
+
+@keyframes loader {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    25% {
+        transform: rotate(180deg);
+    }
+
+    50% {
+        transform: rotate(180deg);
+    }
+
+    75% {
+        transform: rotate(360deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes loader-inner {
+    0% {
+        height: 0%;
+    }
+
+    25% {
+        height: 0%;
+    }
+
+    50% {
+        height: 100%;
+    }
+
+    75% {
+        height: 100%;
+    }
+
+    100% {
+        height: 0%;
+    }
+}
