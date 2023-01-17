@@ -99,7 +99,6 @@ class TableController extends Controller
 
         if ($table->state == 1) {
             $table->state = 0;
-            $this->deleteSaleTable($table->id);
         } else {
             $table->state = 1;
             $this->createSaleTable($table->id, null, 1, 1, null);
