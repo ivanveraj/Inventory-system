@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Traits\ProductTrait;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 
 class ProductController extends Controller
@@ -18,11 +19,8 @@ class ProductController extends Controller
 
     public function list(Request $rq)
     {
-        if ($rq->active == 0) {
-            $products = Product::where('state', 1)->get();
-        } else {
-            $products = Product::all();
-        }
+        $products = Product::all();
+        $LogUser = Auth::user();
         return DataTables::of($products)
             ->addColumn('name', function ($product) {
                 return $product->name . " ($product->code)";
@@ -42,13 +40,18 @@ class ProductController extends Controller
                 class="badge rounded-pill bg-danger">Inactivo</span>';
                 return $state;
             })
-            ->addColumn('actions', function ($product) {
+            ->addColumn('actions', function ($product) use ($LogUser) {
                 $Edit =  '<button onclick="edit(' . $product->id . ')" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="top" title="Editar">
                 <i class="fas fa-edit"></i></button>';
                 $icon = $product->state == 1 ? '<i class="fas fa-trash"></i>' : '<i class="fas fa-sync-alt"></i>';
                 $text = $product->state == 1 ? 'Archivar' : 'Activar';
                 $Archive =  '<button onclick="archive(' . $product->id . ',' . $product->state . ')" class="btn btn-primary btn-sm ml-2" data-toggle="tooltip" data-placement="top" title="' . $text . '">' . $icon . '</button>';
-                return "$Edit $Archive";
+                $deleteStock = "";
+                if ($LogUser->rol_id == 1) {
+                    $deleteStock = '<button onclick="deleteStock(' . $product->id . ')" class="btn btn-primary btn-sm ml-2" data-toggle="tooltip" data-placement="top" title="Eliminar stock">
+                    <i class="fas fa-exclamation-triangle"></i></button>';
+                }
+                return "$Edit $Archive $deleteStock";
             })
             ->rawColumns(['name', 'amount', 'buyprice', 'saleprice', 'state', 'actions'])->make(true);
     }
@@ -143,6 +146,37 @@ class ProductController extends Controller
         }
 
         $product->amount += $rq->amount;
+        $product->save();
+
+        return AccionCorrecta('', '');
+    }
+
+    public function deleteStock($id)
+    {
+        $product = $this->getProduct($id);
+        if (is_null($product)) {
+            return AccionIncorrecta('', '');
+        }
+
+        return view('products.delete_stock', compact('product'));
+    }
+
+    public function saveDeleteStock(Request $rq)
+    {
+        $rq->validate([
+            'id' => 'required',
+            'amount' => 'required|integer'
+        ]);
+
+        $product = $this->getProduct($rq->id);
+        if (is_null($product)) {
+            return AccionIncorrecta('', '');
+        }
+        if ($rq->amount > $product->amount) {
+            $product->amount = 0;
+        }else{
+            $product->amount -= $rq->amount;
+        }
         $product->save();
 
         return AccionCorrecta('', '');

@@ -61,6 +61,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::post('archive', [ProductController::class, 'archive'])->name('product.archive')->middleware('ProtectRoutes:4');
         Route::get('addStock/{id?}', [ProductController::class, 'addStock'])->name('product.addStock')->middleware('ProtectRoutes:4');
         Route::post('saveStock', [ProductController::class, 'saveStock'])->name('product.saveStock')->middleware('ProtectRoutes:4');
+
+        Route::get('deleteStock/{id?}', [ProductController::class, 'deleteStock'])->name('product.deleteStock')->middleware('ProtectRoutes:4');
+        Route::post('saveDeleteStock', [ProductController::class, 'saveDeleteStock'])->name('product.saveDeleteStock')->middleware('ProtectRoutes:4');
+
         Route::get('list', [ProductController::class, 'list'])->name('products.list')->middleware('ProtectRoutes:4');
         Route::get('/', [ProductController::class, 'index'])->name('products.index')->middleware('ProtectRoutes:4');
     });
@@ -90,6 +94,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('dataGeneral', [SaleController::class, 'dataGeneral'])->name('sale.dataGeneral');
         Route::get('generalSale', [SaleController::class, 'generalSale'])->name('sales.generalSale');
         Route::get('tablesSales', [SaleController::class, 'tablesSales'])->name('sales.tablesSales');
+        Route::get('detail_sales', [SaleController::class, 'detail_sales'])->name('sales.detail_sale');
         Route::get('/', [SaleController::class, 'index'])->name('sales.index');
     });
 

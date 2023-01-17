@@ -14,22 +14,40 @@
 
 @section('content')
     <x-card>
-        <div class="flex justify-center my-4">
-            @if (!$day)
+        @if (!$day)
+            <div class="flex justify-center items-center mb-4">
                 <x-jet-button type="button" class="finish_day" onclick="initDay()">Iniciar el dia
                 </x-jet-button>
-            @else
+            </div>
+            <p class="text-justify p-6">Iniciar dia: Apartir del momento en que se inicia el dia se empezara a contar cada
+                venta de cada producto, ademas de contar el tiempo consumido
+                por cada una de las mesas. Cada venta sera contada y al finalizar el dia se debera tener en caja lo
+                vendido.
+            </p>
+        @else
+            <div class="flex justify-center items-center mb-4">
                 <x-jet-danger-button type="button" class="finish_day" onclick="finishDay()">Finalizar el dia
                 </x-jet-danger-button>
-            @endif
-        </div>
+            </div>
+        @endif
 
         @if ($day)
+            <div class="flex justify-end mr-3">
+                <button type="button" onclick="reloadTable()" data-toggle="tooltip" data-placement="top" title="Recargar">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
             <div id="table_sale"></div>
             <hr class="h-2 mx-0 my-3 bg-black" />
-            <h5 class="text-center">Ventas diarias</h5>
-            <div class="flex justify-center my-6">
+            <h5 class="text-center">Ventas generales</h5>
+            <div class="flex justify-center mt-2 mb-4">
                 <x-jet-button type="button" onclick="newSaleGeneral()">Nueva venta</x-jet-button>
+            </div>
+            <div class="flex justify-end mr-3">
+                <button type="button" onclick="reloadGeneral()" data-toggle="tooltip" data-placement="top"
+                    title="Recargar">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
             </div>
             <div id="table_general"></div>
         @endif
@@ -40,37 +58,80 @@
     <script src="{{ asset('js/admin/sweetalert2.js') }}"></script>
     <script src="{{ asset('js/admin/select2.min.js') }}"></script>
     <script>
+        var timers = {};
         $(function() {
-            reloadTable()
-            reloadGeneral()
+            reloadTable();
+            reloadGeneral();
         });
 
-        function reloadTable(res = true) {
-            $.get(`{{ route('sales.tablesSales') }}`, function(response) {
-                $("#table_sale").html(response);
-            }).done(function(response) {
-                $('#sales').DataTable().destroy()
-                $('#sales').DataTable({
-                    responsive: true,
-                    searching: false,
-                    lengthChange: false,
-                    bInfo: false,
-                    columnDefs: [{
-                        width: "18%"
-                    }, {
-                        width: "64%"
-                    }, {
-                        width: "18%"
-                    }],
-                    "drawCallback": function(settings) {
-                        $('[data-toggle="tooltip"]').tooltip();
-                    }
-                })
+        function timer(sale_id) {
+            let hours = $('#hours_' + sale_id)
+            let minutes = $('#minutes_' + sale_id)
+            let seconds = $('#seconds_' + sale_id)
 
-                $.get(`{{ route('sale.dataGeneral') }}?type=${1}`, function(response) {
-                    let general = response.general
+            let labelHours = hours.data('time');
+            let labelMinutes = minutes.data('time');
+            let labelSeconds = seconds.data('time');
+
+            labelSeconds++;
+            if (labelSeconds === 60) {
+                seconds.html('00');
+                seconds.data('time', -1);
+            } else {
+                s = labelSeconds < 10 ? "0" + labelSeconds : labelSeconds;
+                seconds.html(s);
+                seconds.data('time', s);
+            }
+
+            if (labelSeconds === 0) {
+                labelMinutes++;
+                if (labelMinutes === 60) {
+                    minutes.html('00');
+                    minutes.data('time', -1);
+                } else {
+                    m = labelMinutes < 10 ? "0" + labelMinutes : labelMinutes;
+                    minutes.html(m);
+                    minutes.data('time', m);
+                }
+            }
+
+            if (labelSeconds === 0 && labelMinutes === 0) {
+                labelHours++;
+                h = labelHours < 10 ? "0" + labelHours : labelHours;
+                hours.html(h);
+                hours.data('time', h);
+            }
+
+        }
+
+        function initStartTimer(sale_id) {
+            if (timers['timer_' + sale_id] === undefined) {
+                timers['timer_' + sale_id] = setInterval(() => {
+                    timer(sale_id)
+                }, 1000);
+            }
+
+        }
+
+        function reloadTable() {
+            $.each(timers, function(i, val) {
+                clearInterval(val);
+                delete timers[i];
+            });
+
+            $.get(`{{ route('sales.tablesSales') }}`, function(r) {
+                $("#table_sale").html(r);
+            }).done(function(r) {
+                $('[data-toggle="tooltip"]').tooltip();
+                $.get(`{{ route('sale.dataGeneral') }}?type=${1}`, function(r) {
+                    let general = r.general
                     $.each(general, function(i, value) {
                         let general_id = value.id
+
+                        if (value.start_time !== null) {
+                            initStartTimer(general_id);
+                        }
+
                         initSelectProduct("#selectProduct_" + general_id,
                             "{{ route('sale.products') }}")
                         initFormAddProduct(general_id, 1)
@@ -85,19 +146,13 @@
                         });
                     });
                 })
-
-                if (res) {
-                    setTimeout(() => {
-                        reloadTable()
-                    }, 80000);
-                }
             });
         }
 
         function reloadGeneral() {
-            $.get(`{{ route('sales.generalSale') }}`, function(response) {
-                $("#table_general").html(response);
-            }).done(function(response) {
+            $.get(`{{ route('sales.generalSale') }}`, function(r) {
+                $("#table_general").html(r);
+            }).done(function(r) {
                 unblockPage()
 
                 $('#general').DataTable().destroy()
@@ -118,8 +173,8 @@
                     }
                 })
 
-                $.get(`{{ route('sale.dataGeneral') }}?type=${2}`, function(response) {
-                    let general = response.general
+                $.get(`{{ route('sale.dataGeneral') }}?type=${2}`, function(r) {
+                    let general = r.general
                     $.each(general, function(i, value) {
                         let general_id = value.id
                         initSelectProduct("#selectProduct_" + general_id,
@@ -164,7 +219,8 @@
         }
 
         function startTime(sale_id) {
-            blockPage();
+            $(".startTime_" + sale_id).hide();
+            $("#timer_" + sale_id).removeClass('hidden').addClass('d-flex');
             $.ajax({
                 type: 'POST',
                 url: "{{ route('sale.startTime') }}",
@@ -173,16 +229,15 @@
                     'sale_id': sale_id
                 },
                 dataType: "json",
-                success: function(response) {
-                    unblockPage()
-                    addToastr(response.type, response.title, response.message)
-                    if (response.status == 1) {
-                        $(".startTime_" + sale_id).hide();
-                        reloadTable(false);
+                success: function(r) {
+                    addToastr(r.type, r.title, r.message)
+                    if (r.status === 1) {
+                        initStartTimer(sale_id);
+                        reloadTable();
                     }
                 },
-                error: function(response) {
-                    unblockPage()
+                error: function(r) {
+                    console.log(r);
                 }
             });
         }
@@ -196,12 +251,12 @@
                     "_token": "{{ csrf_token() }}"
                 },
                 dataType: "json",
-                success: function(response) {
+                success: function(r) {
                     unblockPage()
-                    addToastr(response.type, response.title, response.message)
+                    addToastr(r.type, r.title, r.message)
                     reloadGeneral();
                 },
-                error: function(response) {
+                error: function(r) {
                     unblockPage()
                 }
             });
@@ -220,19 +275,19 @@
                     contentType: false,
                     processData: false,
                     dataType: "json",
-                    success: function(response) {
-                        if (response.status == 1) {
+                    success: function(r) {
+                        if (r.status == 1) {
                             if (type == 1) {
-                                reloadTable(false)
+                                reloadTable()
                             } else {
                                 reloadGeneral()
                             }
                         } else {
-                            addToastr(response.type, response.title, response.message)
+                            addToastr(r.type, r.title, r.message)
                         }
                         unblockPage()
                     },
-                    error: function(response) {
+                    error: function(r) {
                         unblockPage()
                     }
                 });
@@ -248,26 +303,26 @@
                     "_token": "{{ csrf_token() }}",
                     'extra_id': extra_id,
                 },
-                success: function(response) {
-                    if (response.status == 1) {
+                success: function(r) {
+                    if (r.status == 1) {
                         if (type == 1) {
-                            reloadTable(false)
+                            reloadTable()
                         } else {
                             reloadGeneral()
                         }
                     } else {
-                        addToastr(response.type, response.title, response.message)
+                        addToastr(r.type, r.title, r.message)
                     }
                 },
-                error: function(response) {
-                    console.log(response);
+                error: function(r) {
+                    console.log(r);
                 }
             });
         }
 
         function viewDetail(sale_id, type) {
-            $.get(`{{ route('sale.detail') }}/${sale_id}`, function(response) {
-                $("#contModal").html(response);
+            $.get(`{{ route('sale.detail') }}/${sale_id}`, function(r) {
+                $("#contModal").html(r);
             }).done(function() {
                 unblockPage();
 
@@ -300,28 +355,29 @@
                         contentType: false,
                         processData: false,
                         dataType: "json",
-                        success: function(response) {
+                        success: function(r) {
                             unblockPage();
-                            addToastr(response.type, response.title, response.message)
-                            if (response.status == 1) {
+                            addToastr(r.type, r.title, r.message)
+                            if (r.status == 1) {
                                 $("#modalPayment").modal('hide');
-                                if (type == 1) {
-                                    reloadTable(false)
+                                if (type === 1) {
+                                    delete timers['timer_' + sale_id];
+                                    reloadTable();
                                 } else {
-                                    reloadGeneral()
+                                    reloadGeneral();
                                 }
                             }
                         },
-                        error: function(response) {
+                        error: function(r) {
                             unblockPage();
-                            console.log(response)
-                            addErrorInputs('#FormAssignRol', response)
+                            console.log(r)
+                            addErrorInputs('#FormAssignRol', r)
                         }
                     });
                 });
-            }).fail(function(response) {
+            }).fail(function(r) {
                 unblockPage();
-                console.log(response);
+                console.log(r);
             });
         }
 
@@ -348,19 +404,19 @@
         function finishDay() {
             let sw = SweetConfirmation("Desea finalizar las ventas diarias Nota: NO es reversible",
                 "Si, deseo cerrar las ventas", "Cancelar")
-            sw.then(response => {
-                if (response == true) {
+            sw.then(r => {
+                if (r == true) {
                     $.ajax({
                         type: 'GET',
                         url: "{{ route('sale.finishDay') }}",
                         dataType: "json",
-                        success: function(response) {
-                            if (response.status == 1) {
+                        success: function(r) {
+                            if (r.status == 1) {
                                 $('.finish_day').removeClass('hidden')
                                 $('.init_day').addClass('hidden')
                                 location.href = "{{ route('dashboard') }}";
                             } else {
-                                addToastr(response.type, response.title, response.message)
+                                addToastr(r.type, r.title, r.message)
                             }
                         }
                     });
@@ -371,14 +427,14 @@
         function initDay() {
             let sw = SweetConfirmation("Desea iniciar las ventas del dia",
                 "Si, deseo iniciar las ventas", "Cancelar")
-            sw.then(response => {
-                if (response == true) {
+            sw.then(r => {
+                if (r == true) {
                     $.ajax({
                         type: 'GET',
                         url: "{{ route('sale.initDay') }}",
                         dataType: "json",
-                        success: function(response) {
-                            if (response.status == 1) {
+                        success: function(r) {
+                            if (r.status == 1) {
                                 location.reload();
                             }
                         }

@@ -20,7 +20,7 @@ trait SaleTrait
     }
     public function getSalesType($type)
     {
-        return SaleTable::where('type', $type)->get();
+        return SaleTable::where('type', $type)->orderBy('id', 'ASC')->get();
     }
 
     public function createSaleTable($table_id, $start_time, $state, $type, $client)

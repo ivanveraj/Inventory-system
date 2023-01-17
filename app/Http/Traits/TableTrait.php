@@ -14,11 +14,11 @@ trait TableTrait
 
     public function getTables()
     {
-        return Table::where('state', 1)->get();
+        return Table::where('state', 1)->orderBy('id', 'ASC')->get();
     }
     public function getSaleTables()
     {
-        return SaleTable::where('state', 1)->get();
+        return SaleTable::where('state', 1)->orderBy('id', 'ASC')->get();
     }
     public function createTable($name)
     {

@@ -55,7 +55,6 @@ input[type=number] {
     display: flex !important;
     align-items: center !important;
     border-color: rgb(209 213 219 / var(--tw-border-opacity));
-    max-width: 220px !important;
 }
 
 span.select2-search.select2-search--inline {

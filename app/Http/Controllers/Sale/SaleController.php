@@ -3,17 +3,20 @@
 namespace App\Http\Controllers\Sale;
 
 use App\Http\Controllers\Controller;
+use App\Http\Traits\GeneralTrait;
 use App\Http\Traits\ProductTrait;
 use App\Http\Traits\SaleTrait;
 use App\Http\Traits\SettingTrait;
 use App\Http\Traits\TableTrait;
+use App\Models\HistoryProductSale;
+use App\Models\HistorySale;
 use App\Models\Product;
 use App\Models\SaleTable;
 use Illuminate\Http\Request;
 
 class SaleController extends Controller
 {
-    use TableTrait, SaleTrait, ProductTrait, SettingTrait;
+    use TableTrait, SaleTrait, ProductTrait, SettingTrait, GeneralTrait;
     public function finishDay()
     {
         $sales = SaleTable::where('type', 1)->get();
@@ -248,30 +251,35 @@ class SaleController extends Controller
             return AccionIncorrecta('', '');
         }
 
-        $total = 0;
+        $time = 0;
+        $priceTime = 0;
         if (!is_null($sale->start_time)) {
             $TiempoMinimo = $this->getSetting('TiempoMinimo');
             $time = DateDifference(date('Y-m-d H:i:s'), $sale->start_time);
             if ($time < $TiempoMinimo) {
-                $total = $this->getSetting('PrecioMinimo');
+                $priceTime = $this->getSetting('PrecioMinimo');
             } else {
                 $PrecioXHora = $this->getSetting('PrecioXHora');
-                $total = round(($PrecioXHora / 60) * $time);
+                $priceTime = round(($PrecioXHora / 60) * $time);
             }
         }
 
         if ($sale->type == 2) {
-            $total = 0;
+            $priceTime = 0;
         }
 
+        $total = $priceTime;
         $extras = $sale->Extras;
         foreach ($extras as $ext) {
+            $this->createHistoryProductSale($ext->sale_id, $ext->product_id, $ext->amount, $ext->price);
             $total += $ext->total;
         }
 
         $day = getDay();
         $day->total += $total;
         $day->save();
+
+        $this->createHistorySale($sale->id, $total, $priceTime, $time);
 
         if ($sale->type == 1) {
             $this->deleteSaleAllTable($sale);
@@ -280,5 +288,12 @@ class SaleController extends Controller
         }
 
         return AccionCorrecta('', '');
+    }
+    public function detail_sales()
+    {
+        return redirect()->back();
+        /*     $historyTables = HistorySale::orderBy('created_at', 'DESC')->all();
+        $historyProductSales = HistoryProductSale::all(); */
+        return view('history.sale_history', compact('historyTables', 'historyProductSales'));
     }
 }

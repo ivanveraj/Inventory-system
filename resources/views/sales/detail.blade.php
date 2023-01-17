@@ -27,7 +27,7 @@
                             @endphp
                             <td class="break-words">{{ is_null($product) ? 'Sin nombre' : $product->name }}</td>
                             <td>{{ $extra->amount }}</td>
-                            <td>{{ formatMoney($extra->price) }}</td>
+                            <td>{{ formatMoney($extra->amount*$extra->price) }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -43,10 +43,9 @@
                     <h5>Total a pagar: {{ formatMoney($total) }}</h5>
                 </div>
             </div>
-
         </div>
         <div class="modal-footer">
-            <x-jet-secondary-button type="button" data-bs-dismiss="modal">Cerrar</x-jet-secondary-button>
+            <x-jet-danger-button type="button" data-bs-dismiss="modal">Cerrar</x-jet-danger-button>
             <x-jet-button>Pagado</x-jet-button>
         </div>
     </form>

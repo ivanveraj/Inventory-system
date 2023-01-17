@@ -71,6 +71,12 @@ function DateDifference($date1, $date2)
     $minutes = (strtotime($date1) - strtotime($date2)) / 60;
     return floor($minutes);
 }
+function DateDifferenceSeconds($date1, $date2)
+{
+    $minutes = (strtotime($date1) - strtotime($date2)) / 60;
+    $seconds = $minutes * 60;
+    return $seconds;
+}
 
 function getDay()
 {

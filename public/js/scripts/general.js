@@ -5,7 +5,6 @@ $(function () {
 
 
 function addToastr(type, title, message) {
-    console.log("aa");
     toastr['' + type](message, title);
 }
 
@@ -67,7 +66,7 @@ function SweetDetail(btnOk) {
 
 function initSelectProduct(id, route) {
     $(id).select2({
-        placeholder: "--Escriba un codigo de producto",
+        placeholder: "--Codigo producto",
         width: '100%',
         ajax: {
             url: route,

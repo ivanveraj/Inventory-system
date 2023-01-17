@@ -24,7 +24,7 @@
 
     <link href="{{ asset('css/datatable/jquery.dataTables.min.css') }}" rel="stylesheet" />
 
-    <link href="{{ mix('css/app.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ asset('css/app.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ asset('css/admin/styles.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('css/styles/style.css') }}" rel="stylesheet" type="text/css" />
     @livewireStyles

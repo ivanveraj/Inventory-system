@@ -10,15 +10,12 @@
 
 @section('content')
     <x-card>
-        <div class="flex justify-between my-3 p-2">
-            <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" role="switch" id="allProducts" />
-                <label class="form-check-label" for="allProducts">Listar todos los productos</label>
-            </div>
+        <div class="flex justify-end my-3 p-2">
             <x-jet-button type="button" onclick="create()">Crear un nuevo producto</x-jet-button>
         </div>
         <div class="flex justify-center">
-            <table id="products" class="p-4 items-center align-top border-gray-200 text-slate-500 text-center" style="width: 100%">
+            <table id="products" class="p-4 items-center align-top border-gray-200 text-slate-500 text-center"
+                style="width: 100%">
                 <thead>
                     <tr
                         class="px-6 py-3 font-bold uppercase align-middle border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
@@ -41,26 +38,17 @@
 @push('js')
     <script src="{{ asset('js/admin/sweetalert2.js') }}"></script>
     <script>
-        var state = document.getElementById('allProducts');
-        var active = 0;
         $(function() {
             reloadTable()
         });
-
-        state.addEventListener('change', function() {
-            active = (active == 0) ? 1 : 0
-            reloadTable()
-        })
-
-
+   
         function reloadTable() {
             $('#products').DataTable().destroy()
             $('#products').DataTable({
                 responsive: true,
                 processing: true,
-                serverSide: true,
                 ajax: {
-                    url: "{{ route('products.list') }}" + `?active=${active}`
+                    url: "{{ route('products.list') }}"
                 },
                 columns: [{
                     data: 'name',
@@ -73,13 +61,13 @@
                     width: '15%'
                 }, {
                     data: 'saleprice',
-                    width: '15%'
+                    width: '12%'
                 }, {
                     data: 'state',
-                    width: '15%'
+                    width: '12%'
                 }, {
                     data: 'actions',
-                    width: '30%'
+                    width: '16%'
                 }],
                 "drawCallback": function(settings) {
                     $('[data-toggle="tooltip"]').tooltip();
@@ -168,7 +156,7 @@
             });
         }
 
-        function archive(id,state) {
+        function archive(id, state) {
             let msj = state == 1 ? "Desea archivar el producto" : "Desea activar el producto"
             let sw = SweetConfirmation(msj, "Si", "No")
             sw.then(response => {
@@ -230,6 +218,49 @@
                             error: function(response) {
                                 unblockPage()
                                 addErrorInputs('#FormAdd', response)
+                            }
+                        });
+                    });
+                }
+            }).fail(function() {
+                unblockPage()
+            });
+        }
+
+        function deleteStock(id) {
+            blockPage()
+            $.get(`{{ route('product.deleteStock') }}/${id}`, function(response) {
+                if (response.status != undefined) {
+                    addToastr(response.type, response.title, response.message)
+                } else {
+                    $("#contStock").html(response);
+                }
+            }).done(function(response) {
+                unblockPage()
+                if (response.status == undefined) {
+                    $("#deleteStock").modal('show')
+
+                    $('#FormDelete').submit(function(e) {
+                        e.preventDefault();
+                        blockPage();
+                        let formData = new FormData(this);
+                        let formAction = $(this).attr("action");
+                        $.ajax({
+                            type: 'POST',
+                            url: formAction,
+                            data: formData,
+                            contentType: false,
+                            processData: false,
+                            dataType: "json",
+                            success: function(response) {
+                                unblockPage()
+                                $("#deleteStock").modal('hide');
+                                reloadTable()
+                                addToastr(response.type, response.title, response.message)
+                            },
+                            error: function(response) {
+                                unblockPage()
+                                addErrorInputs('#FormDelete', response)
                             }
                         });
                     });
