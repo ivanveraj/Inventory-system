@@ -161,13 +161,6 @@
                     searching: false,
                     lengthChange: false,
                     bInfo: false,
-                    columnDefs: [{
-                        width: "18%"
-                    }, {
-                        width: "64%"
-                    }, {
-                        width: "18%"
-                    }],
                     "drawCallback": function(settings) {
                         $('[data-toggle="tooltip"]').tooltip();
                     }

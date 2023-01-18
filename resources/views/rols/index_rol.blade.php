@@ -17,11 +17,15 @@
 @endphp
 @section('content')
     <x-card>
-        @if (validatePermission($LogUser, 1))
-            <div class="flex justify-end mb-4">
-                <x-jet-button type="button" onclick="create()">Crear un nuevo rol</x-jet-button>
+        <div class="flex justify-between my-3 p-2">
+            <div>
+                <button type="button" onclick="reloadTable()" data-toggle="tooltip" data-placement="top" title="Recargar">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
             </div>
-        @endif
+            <x-jet-button type="button" onclick="create()">Crear un nuevo rol</x-jet-button>
+        </div>
+
         <div class="flex justify-center">
             <table id="Roles" class="p-4 items-center w-full align-top border-gray-200 text-slate-500 text-center">
                 <thead>
@@ -29,6 +33,7 @@
                         class="px-6 py-3 font-bold uppercase align-middle border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
                         <th>Rol</th>
                         <th>Usuarios asociados</th>
+                        <th>Estado</th>
                         <th>Gestion de permisos</th>
                         <th>Acciones</th>
                     </tr>
@@ -36,7 +41,7 @@
             </table>
         </div>
     </x-card>
-    
+
     <div id="contCreateRol"></div>
     <div id="contEditRol"></div>
     <div id="managePermission"></div>
@@ -58,22 +63,21 @@
                     url: "{{ route('roles.datatables') }}"
                 },
                 columns: [{
-                        data: 'name',
-                        width: '30%'
-                    },
-                    {
-                        data: 'users_associated',
-                        width: '10%'
-                    },
-                    {
-                        data: 'permissions',
-                        width: '30%'
-                    },
-                    {
-                        data: 'actions',
-                        width: '30%'
-                    }
-                ],
+                    data: 'name',
+                    width: '30%'
+                }, {
+                    data: 'users_associated',
+                    width: '10%'
+                }, {
+                    data: 'state',
+                    width: '10%'
+                }, {
+                    data: 'permissions',
+                    width: '30%'
+                }, {
+                    data: 'actions',
+                    width: '20%'
+                }],
                 "drawCallback": function(settings) {
                     $('[data-toggle="tooltip"]').tooltip();
                 }
@@ -202,8 +206,9 @@
             });
         }
 
-        function archiveRol(rol_id) {
-            let sw = SweetConfirmation("Desea archivar el rol", "Si", "No")
+        function archiveRol(rol_id, state) {
+            let msj = state == 1 ? "Desea archivar el rol" : "Desea activar el rol"
+            let sw = SweetConfirmation(msj, "Si", "No")
             sw.then(response => {
                 if (response == true) {
                     blockPage();

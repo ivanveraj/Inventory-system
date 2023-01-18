@@ -11,11 +11,12 @@
 @section('content')
     <x-card>
         <div class="flex justify-between my-3 p-2">
-            <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" role="switch" id="allTables" />
-                <label class="form-check-label" for="allTables">Listar todas las mesas</label>
+            <div>
+                <button type="button" onclick="reloadTable()" data-toggle="tooltip" data-placement="top" title="Recargar">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
             </div>
-            <x-jet-button type="button" onclick="create()">Crear una nueva mesa</x-jet-button>
+            <x-jet-button type="button" onclick="create()">Crear un nuevo producto</x-jet-button>
         </div>
         <div class="flex justify-center">
             <table id="tables" class="p-4 items-center w-full align-top border-gray-200 text-slate-500 text-center">

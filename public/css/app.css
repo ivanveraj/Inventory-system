@@ -2102,6 +2102,10 @@ select {
   padding-left: 2rem;
   padding-right: 2rem;
 }
+.px-12 {
+  padding-left: 3rem;
+  padding-right: 3rem;
+}
 .pt-6 {
   padding-top: 1.5rem;
 }
@@ -3137,6 +3141,10 @@ select {
     grid-column: span 4 / span 4;
   }
 
+  .sm\:col-span-2 {
+    grid-column: span 2 / span 2;
+  }
+
   .sm\:mx-0 {
     margin-left: 0px;
     margin-right: 0px;
@@ -3276,6 +3284,10 @@ select {
 
   .sm\:grid-cols-1 {
     grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  .sm\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .sm\:items-start {

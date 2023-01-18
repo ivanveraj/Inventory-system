@@ -19,11 +19,8 @@ class TableController extends Controller
 
     public function list(Request $rq)
     {
-        if ($rq->active == 0) {
-            $tables = Table::where('state', 1)->orderBy('id','ASC')->get();
-        } else {
-            $tables = Table::orderBy('id','ASC')->all();
-        }
+        $tables = Table::orderBy('id', 'asc')->get();
+
         return DataTables::of($tables)
             ->addColumn('name', function ($table) {
                 return $table->name;

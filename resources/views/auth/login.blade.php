@@ -16,17 +16,15 @@
             @csrf
 
             <div>
-                <x-jet-label for="email" value="Email" />
-                <x-jet-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')"
+                <x-jet-label for="user" value="Usuario" />
+                <x-jet-input id="user" class="block mt-1 w-full" type="text" name="user" :value="old('user')"
                     required autofocus />
             </div>
-
             <div class="mt-4">
                 <x-jet-label for="password" value="Contraseña" />
                 <x-jet-input id="password" class="block mt-1 w-full" type="password" name="password" required
                     autocomplete="current-password" />
             </div>
-
             <div class="block mt-4">
                 <label for="remember_me" class="flex items-center">
                     <x-jet-checkbox id="remember_me" name="remember" />

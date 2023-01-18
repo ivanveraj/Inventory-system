@@ -19,7 +19,7 @@ class ProductController extends Controller
 
     public function list(Request $rq)
     {
-        $products = Product::all();
+        $products = Product::orderBy('updated_at', 'DESC')->get();
         $LogUser = Auth::user();
         return DataTables::of($products)
             ->addColumn('name', function ($product) {
@@ -101,7 +101,7 @@ class ProductController extends Controller
         }
 
         $product->name = $rq->name;
-        $product->code = $rq->code;
+        $product->code = strtoupper($rq->code);
         $product->buyprice = $rq->buyprice;
         $product->saleprice = $rq->saleprice;
         $product->save();
@@ -174,7 +174,7 @@ class ProductController extends Controller
         }
         if ($rq->amount > $product->amount) {
             $product->amount = 0;
-        }else{
+        } else {
             $product->amount -= $rq->amount;
         }
         $product->save();

@@ -18,9 +18,10 @@ $LogUser = Auth::user();
 @section('content')
     <x-card>
         <div class="flex justify-between my-3 p-2">
-            <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" role="switch" id="allUsers" />
-                <label class="form-check-label" for="allUsers">Listar todos los usuarios</label>
+            <div>
+                <button type="button" onclick="reloadTable()" data-toggle="tooltip" data-placement="top" title="Recargar">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
             </div>
             <div>
                 <x-jet-button type="button" onclick="create()">Crear un nuevo usuario</x-jet-button>
@@ -50,10 +51,11 @@ $LogUser = Auth::user();
 @push('js')
     <script src="{{ asset('js/admin/sweetalert2.js') }}"></script>
     <script src="{{ asset('js/admin/select2.min.js') }}"></script>
-
     <script>
-        var state = document.getElementById('allUsers');
-        var active = 0;
+
+         $(function() {
+            reloadTable()
+        });
 
         function reloadTable() {
             $('#Table').DataTable().destroy()
@@ -62,7 +64,7 @@ $LogUser = Auth::user();
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: "{{ route('users.list') }}" + `?active=${active}`
+                    url: "{{ route('users.list') }}"
                 },
                 columns: [{
                     data: 'name',
@@ -79,14 +81,6 @@ $LogUser = Auth::user();
                 }]
             });
         }
-
-        $(function() {
-            reloadTable()
-            state.addEventListener('change', function() {
-                active = (active == 0) ? 1 : 0
-                reloadTable()
-            })
-        });
 
         function create() {
             blockPage();

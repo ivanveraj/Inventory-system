@@ -19,8 +19,14 @@ class RolSeeder extends Seeder
         RolGroup::create([
             'name' => 'Administracion'
         ]);
+        
         Rol::create([
             'name' => 'SuperAdmin',
+            'state' => 1,
+            'rolG_id' => 1
+        ]);
+        Rol::create([
+            'name' => 'Administrador',
             'state' => 1,
             'rolG_id' => 1
         ]);

@@ -10,9 +10,10 @@ class SettingsController extends Controller
 {
     public function index()
     {
-        $general = Setting::where('group', 'Time')->get();
+        $general = Setting::where('group', 'Time')->orderBy('id', 'ASC')->get();
         return view('settings.settings', compact('general'));
     }
+    
     public function general(Request $rq)
     {
         $general = Setting::where('group', 'Time')->get();

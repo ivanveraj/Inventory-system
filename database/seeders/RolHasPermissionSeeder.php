@@ -19,7 +19,7 @@ class RolHasPermissionSeeder extends Seeder
         $permissions = Permission::all();
         for ($i = 0; $i < count($permissions); $i++) {
             RolHasPermission::create([
-                'rol_id' => 1,
+                'rol_id' => 2,
                 'permission_id' => $permissions[$i]['id']
             ]);
         }
