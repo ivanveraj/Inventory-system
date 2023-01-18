@@ -21,12 +21,7 @@ class UserController extends Controller
 
     public function list(Request $rq)
     {
-        if ($rq->active == 0) {
-            $users = User::where('state', 1)
-                ->whereNotIn('rol_id', [1])->get();
-        } else {
-            $users = User::whereNotIn('rol_id', [1])->get();
-        }
+        $users = User::whereNotIn('rol_id', [1])->get();
 
         return DataTables::of($users)
             ->addColumn('name', function ($user) {
@@ -50,7 +45,7 @@ class UserController extends Controller
                 $rol = $user->Rol;
                 return is_null($rol) ? 'Sin rol' : $rol->name;
             })
-            ->addColumn('actions', function ($user){
+            ->addColumn('actions', function ($user) {
                 $Edit = '<button onclick="edit(' . $user->id . ')" class="dropdown-item">Editar</button>';
                 $msj = $user->state == 1 ? 'Archivar' : 'Activar';
                 $Archive =  '<button onclick="archive(' . $user->id . ',' . $user->state . ')" class="dropdown-item">' . $msj . '</button>';
@@ -82,18 +77,18 @@ class UserController extends Controller
     {
         $rq->validate([
             'name' => 'required',
-            'email' => 'required|email:rfc|unique:users,email',
+            'user' => 'required|unique:users,user',
             'password' => 'required',
             'passwordC' => 'required|same:password'
         ]);
 
         $user = User::create([
             'name' => $rq->name,
-            'rol_id' => 2,
+            'rol_id' => 3,
             'state' => 1,
-            'email' => $rq->email,
+            'user' => $rq->user,
             'password' => Hash::make($rq->password),
-            'remember_token' => time() . $rq->number_doc,
+            'remember_token' => time() . $rq->user,
         ]);
 
         return AccionCorrecta('', '');
@@ -113,7 +108,7 @@ class UserController extends Controller
         $rq->validate([
             'id' => 'required',
             'name' => 'required',
-            'email' => 'required'
+            'user' => 'required'
         ]);
 
         $user = $this->getUser($rq->id);
@@ -123,7 +118,7 @@ class UserController extends Controller
 
         $user->update([
             'name' => $rq->name,
-            'email' => $rq->email
+            'user' => $rq->user
         ]);
 
         return AccionCorrecta('', '');

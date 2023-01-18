@@ -12,7 +12,7 @@
             @endif
         </div>
         <div>
-            <h4 class="text-center">Ventas de los ultimos 4 dias</h4>
+            <h4 class="text-center">Ventas de los ultimos 7 dias</h4>
             <div class="flex flex-wrap -mx-3 justify-center">
                 @foreach ($lastFourDay as $day)
                     <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">

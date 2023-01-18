@@ -9,7 +9,7 @@ class HistoryProductSale extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'sale_id',
+        'sale',
         'product_id',
         'amount',
         'price'

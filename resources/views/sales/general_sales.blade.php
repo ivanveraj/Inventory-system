@@ -18,8 +18,9 @@
             @endphp
             <tr>
                 <td class="p-2 align-middle bg-transparent border-b">
-                    <x-jet-input type="text" id="client_{{ $sale->id }}" value="{{ $sale->client }}"
-                        onblur="initChangeClient({{ $sale->id }})" class="w-full" placeholder="Escribe un nombre">
+                    <x-jet-input type="text" id="client_{{ $sale->id }}" value="{{ $sale->client }}" class="w-full"
+                        onblur="initChangeClient({{ $sale->id }})" placeholder="Escribe un nombre"
+                        style="max-width: 280px">
                     </x-jet-input>
                 </td>
                 <td class="p-2 align-middle bg-transparent border-b">
@@ -29,21 +30,20 @@
                             @csrf
                             <input type="hidden" value="{{ $sale->id }}" name="sale_id">
                             <div class="flex justify-center items-center {{ $extras->isEmpty() ? '' : 'mb-3' }}">
-                                <div class="w-2/3">
-                                    <x-jet-input type="number" name="amount" class="w-full" placeholder="Cantidad">
-                                    </x-jet-input>
-                                </div>
-                                <div class="w-full ml-3">
-                                    <div class="flex items-center">
-                                        <div>
-                                            <select id="selectProduct_{{ $sale->id }}" name="product_id"
-                                                class="form-control" style="max-width: 250px !important"></select>
-                                        </div>
-                                        <div>
-                                            <button type="submit" class="btn btn-secondary w-full ml-2">
-                                                <i class="fa fa-plus"></i>
-                                            </button>
-                                        </div>
+                                <div class="flex justify-center items-center {{ $extras->isEmpty() ? '' : 'mb-3' }}">
+                                    <div style="width: 120px">
+                                        <x-jet-input type="number" name="amount" class="w-full"
+                                            placeholder="Cantidad">
+                                        </x-jet-input>
+                                    </div>
+                                    <div class="flex items-center ml-3 w-full">
+                                        <select id="selectProduct_{{ $sale->id }}" name="product_id"
+                                            class="form-control"></select>
+
+                                        <button type="submit" class="btn btn-secondary btn-sm ml-2"
+                                            data-toggle="tooltip" data-placement="top" title="Agregar producto">
+                                            <i class="fa fa-plus"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -66,20 +66,19 @@
                                         <td class="break-words p-2 align-middle bg-transparent border-b">
                                             {{ $extra->Product->name }}</td>
                                         <td class="p-2 align-middle bg-transparent border-b">
-                                            <x-jet-input type="number" id="amountExtra_{{ $extra->id }}"
-                                                class="w-full" value="{{ $extra->amount }}">
-                                            </x-jet-input>
+                                            <div style="width: 100px">
+                                                <x-jet-input type="number" id="amountExtra_{{ $extra->id }}"
+                                                    class="w-full" value="{{ $extra->amount }}">
+                                                </x-jet-input>
+                                            </div>
                                         </td>
                                         <td class="p-2 align-middle bg-transparent border-b"
                                             id="priceExtra_{{ $extra->id }}" data-price="{{ $extra->price }}">
                                             {{ $extra->price }}</td>
                                         <td class="p-2 align-middle bg-transparent border-b">
-                                            {{-- <x-jet-danger-button type="button"
-                                                onclick="deleteExtra({{ $extra->id }},2)">
-                                                <i class="fas fa-backspace fa-2x"></i>
-                                            </x-jet-danger-button> --}}
-                                            <button type="submit" class="btn btn-danger"
-                                                onclick="deleteExtra({{ $extra->id }},2)">
+                                            <button type="button" class="btn btn-sm bg-danger text-white"
+                                                onclick="deleteExtra({{ $extra->id }},2)" data-toggle="tooltip"
+                                                data-placement="top" title="Eliminar">
                                                 <i class="fas fa-backspace"></i>
                                             </button>
                                         </td>
@@ -90,11 +89,15 @@
                     @endif
                 </td>
                 <td class="p-2 align-middle bg-transparent border-b">
-                    <x-jet-button class="bg-success" data-toggle="tooltip" data-placement="top"
-                        id="totalExtra_{{ $sale->id }}" title="Cobrar"
-                        onclick="viewDetail({{ $sale->id }},2)">
-                        {{ $total }}
-                    </x-jet-button>
+                    @if ($total != 0)
+                        <x-jet-button class="bg-success" data-toggle="tooltip" data-placement="top"
+                            id="totalExtra_{{ $sale->id }}" title="Cobrar"
+                            onclick="viewDetail({{ $sale->id }},2)">
+                            {{ $total }}
+                        </x-jet-button>
+                    @else
+                        <span class="btn bg-success text-white">0</span>
+                    @endif
                 </td>
             </tr>
         @endforeach

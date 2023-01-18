@@ -114,7 +114,7 @@
                                             </x-jet-input>
                                         </td>
                                         <td id="priceExtra_{{ $extra->id }}" data-price="{{ $extra->price }}">
-                                            {{ formatMoney($extra->price * $extra->amount) }}</td>
+                                            {{ formatMoney($extra->price) }}</td>
                                         <td>
                                             <button type="button" class="btn btn-sm bg-danger text-white"
                                                 onclick="deleteExtra({{ $extra->id }},1)" data-toggle="tooltip"
@@ -129,11 +129,15 @@
                     @endif
                 </td>
                 <td class="p-2 align-middle bg-transparent border-b">
-                    <x-jet-button class="bg-success" data-toggle="tooltip" data-placement="top"
-                        id="totalExtra_{{ $sale->id }}" title="Cobrar"
-                        onclick="viewDetail({{ $sale->id }},1)">
-                        {{ formatMoney($total) }}
-                    </x-jet-button>
+                    @if ($total != 0)
+                        <x-jet-button class="bg-success" data-toggle="tooltip" data-placement="top"
+                            id="totalExtra_{{ $sale->id }}" title="Cobrar"
+                            onclick="viewDetail({{ $sale->id }},1)">
+                            {{ formatMoney($total) }}
+                        </x-jet-button>
+                    @else
+                        <span class="btn bg-success text-white">0</span>
+                    @endif
                 </td>
             </tr>
         @endforeach

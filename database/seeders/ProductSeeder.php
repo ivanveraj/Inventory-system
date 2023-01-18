@@ -17,7 +17,6 @@ class ProductSeeder extends Seeder
      */
     public function run()
     {
-
         $this->createProduct('CB', 'Club Colombia | Budweiser | Stella | Heineken', 3200, 4000, 100);
         $this->createProduct('CV', 'Poker', 3200, 4000, 100);
         $this->createProduct('COR', 'Coronita', 3200, 4000, 100);

@@ -11,7 +11,7 @@ class HistorySale extends Model
     protected $fillable = [
         'id',
         'total',
-        'sale_id',
+        'sale',
         'time',
         'price_time'
     ];

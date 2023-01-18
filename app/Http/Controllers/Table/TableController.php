@@ -19,11 +19,8 @@ class TableController extends Controller
 
     public function list(Request $rq)
     {
-        if ($rq->active == 0) {
-            $tables = Table::where('state', 1)->get();
-        } else {
-            $tables = Table::all();
-        }
+        $tables = Table::orderBy('id', 'asc')->get();
+
         return DataTables::of($tables)
             ->addColumn('name', function ($table) {
                 return $table->name;
@@ -99,6 +96,7 @@ class TableController extends Controller
 
         if ($table->state == 1) {
             $table->state = 0;
+            $this->deleteSaleTable($table->id);
         } else {
             $table->state = 1;
             $this->createSaleTable($table->id, null, 1, 1, null);

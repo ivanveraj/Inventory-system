@@ -58,6 +58,7 @@ class SaleController extends Controller
 
     //Ventas generales
     public function generalSale()
+
     {
         $general = $this->getSalesType(2);
         return view('sales.general_sales', compact('general'));
@@ -100,13 +101,14 @@ class SaleController extends Controller
     public function products(Request $rq)
     {
         if (isset($rq->searchTerm)) {
-            $products = Product::where('state', 1)->where('amount', '>', 0)->where('code', 'LIKE', "%" . $rq->searchTerm . "%")->get();
+            $searchTerm = strtoupper($rq->searchTerm);
+            $products = Product::where('state', 1)->where('amount', '>', 0)->where('code', 'LIKE', "%" . $searchTerm . "%")->get();
         } else {
             $products = $this->getProductsStock();
         }
         $array = [];
         foreach ($products as $product) {
-            $array[] = ['id' => $product->id, 'text' => $product->name . " Disponible ($product->amount)"];
+            $array[] = ['id' => $product->id, 'text' => $product->name . " (" . $product->code . ") [$product->amount]"];
         }
         return response()->json($array);
     }
@@ -208,6 +210,7 @@ class SaleController extends Controller
 
     public function detail($sale_id)
     {
+        
         $sale = $this->getSale($sale_id);
         if (is_null($sale)) {
             return AccionIncorrecta('', '');
@@ -270,8 +273,12 @@ class SaleController extends Controller
 
         $total = $priceTime;
         $extras = $sale->Extras;
+
+        $next = HistoryProductSale::orderBy('id', 'desc')->first();
+        $next = is_null($next) ? 1 : $next->id + 1;
+
         foreach ($extras as $ext) {
-            $this->createHistoryProductSale($ext->sale_id, $ext->product_id, $ext->amount, $ext->price);
+            $this->createHistoryProductSale($next, $ext->product_id, $ext->amount, $ext->price);
             $total += $ext->total;
         }
 
@@ -279,8 +286,7 @@ class SaleController extends Controller
         $day->total += $total;
         $day->save();
 
-        $this->createHistorySale($sale->id, $total, $priceTime, $time);
-
+        $this->createHistorySale($next, $total, $priceTime, $time);
         if ($sale->type == 1) {
             $this->deleteSaleAllTable($sale);
         } else {

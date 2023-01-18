@@ -10,9 +10,15 @@
 
 @section('content')
     <x-card>
-        <div class="flex justify-end my-3 p-2">
+        <div class="flex justify-between my-3 p-2">
+            <div>
+                <button type="button" onclick="reloadTable()" data-toggle="tooltip" data-placement="top" title="Recargar">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
             <x-jet-button type="button" onclick="create()">Crear un nuevo producto</x-jet-button>
         </div>
+       
         <div class="flex justify-center">
             <table id="products" class="p-4 items-center align-top border-gray-200 text-slate-500 text-center"
                 style="width: 100%">
@@ -69,6 +75,9 @@
                     data: 'actions',
                     width: '16%'
                 }],
+                order: [
+                    [1, 'DESC']
+                ],
                 "drawCallback": function(settings) {
                     $('[data-toggle="tooltip"]').tooltip();
                 }
