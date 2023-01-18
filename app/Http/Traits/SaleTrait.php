@@ -16,7 +16,7 @@ trait SaleTrait
 
     public function getSales($state, $type)
     {
-        return SaleTable::where('state', $state)->get();
+        return SaleTable::where('state', $state)->orderBy('id', 'ASC')->get();
     }
     public function getSalesType($type)
     {

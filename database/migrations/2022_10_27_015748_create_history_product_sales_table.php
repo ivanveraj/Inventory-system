@@ -15,8 +15,7 @@ return new class extends Migration
     {
         Schema::create('history_product_sales', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('sale_id');
-            $table->foreign('sale_id')->references('id')->on('sale_tables');
+            $table->integer('sale');
             $table->unsignedBigInteger('product_id');
             $table->foreign('product_id')->references('id')->on('products');
             $table->bigInteger('amount');

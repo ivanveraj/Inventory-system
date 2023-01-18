@@ -15,8 +15,7 @@ return new class extends Migration
     {
         Schema::create('history_sales', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('sale_id');
-            $table->foreign('sale_id')->references('id')->on('sale_tables');
+            $table->integer('sale');
             $table->double('total');
             $table->integer('time')->nullable();
             $table->double('price_time')->nullable();
