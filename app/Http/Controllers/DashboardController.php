@@ -3,22 +3,65 @@
 namespace App\Http\Controllers;
 
 use App\Http\Traits\DashboardTrait;
+use App\Http\Traits\SettingTrait;
+use App\Http\Traits\TableTrait;
 use App\Models\Day;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    use DashboardTrait;
+    use DashboardTrait, SettingTrait, TableTrait;
     public function dashboard()
     {
         $lastFourDay = $this->getLastFourDay();
+        $priceTime = $this->getSetting('PrecioXHora');
+
         $day = getDayCurrent();
-        $total = 0;
+        $historyTables = null;
+        $currentTTimeTable = 0;
+        $currentTValueTable = 0;
+        $currentSales = 0;
         if (!is_null($day)) {
-            $total = $day->total;
+            $currentSales = $day->total;
+            $historyTables = $this->getHistoryTables($day->id);
+            foreach ($historyTables as $historyT) {
+                $saleXTable = round(($priceTime / 60) * $historyT->time);
+                $historyT->total += $saleXTable;
+                $currentTTimeTable += $historyT->time;
+                $currentTValueTable += $saleXTable;
+            }
         }
 
-        return view('dashboard', compact('lastFourDay', 'total'));
+        $lastDay = $this->getLastDay();
+        $lastHistoryTables = null;
+        $lastTTimeTable = 0;
+        $lastTValueTable = 0;
+        $lastSales = 0;
+        if (!is_null($lastDay)) {
+            $lastSales = $lastDay->total;
+            $lastHistoryTables = $this->getHistoryTables($lastDay->id);
+            foreach ($lastHistoryTables as $historyT) {
+                $saleXTable = round(($priceTime / 60) * $historyT->time);
+                $historyT->total += $saleXTable;
+                $lastTTimeTable += $historyT->time;
+                $lastTValueTable += $saleXTable;
+            }
+        }
+
+
+        return view('home.dashboard', compact(
+            'lastFourDay',
+            'currentTTimeTable',
+            'currentTValueTable',
+            'currentSales',
+            'day',
+            'historyTables',
+            'lastDay',
+            'lastHistoryTables',
+            'lastTTimeTable',
+            'lastTValueTable',
+            'lastSales'
+        ));
     }
 
     public function getDataSales()

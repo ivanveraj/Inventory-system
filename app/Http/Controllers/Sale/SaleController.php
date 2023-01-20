@@ -210,7 +210,7 @@ class SaleController extends Controller
 
     public function detail($sale_id)
     {
-        
+
         $sale = $this->getSale($sale_id);
         if (is_null($sale)) {
             return AccionIncorrecta('', '');
@@ -260,6 +260,7 @@ class SaleController extends Controller
             $TiempoMinimo = $this->getSetting('TiempoMinimo');
             $time = DateDifference(date('Y-m-d H:i:s'), $sale->start_time);
             if ($time < $TiempoMinimo) {
+                $time = 10;
                 $priceTime = $this->getSetting('PrecioMinimo');
             } else {
                 $PrecioXHora = $this->getSetting('PrecioXHora');
@@ -287,8 +288,10 @@ class SaleController extends Controller
         $day->save();
 
         $this->createHistorySale($next, $total, $priceTime, $time);
+        
         if ($sale->type == 1) {
             $this->deleteSaleAllTable($sale);
+            $this->addTimeHistoryTable($day->id, $sale->table_id, $time);
         } else {
             $this->deleteSaleAll($sale);
         }

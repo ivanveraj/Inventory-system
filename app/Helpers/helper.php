@@ -1,9 +1,12 @@
 <?php
 
 use App\Models\Day;
+use App\Models\HistoryTable;
 use App\Models\Rol;
 use App\Models\RolHasPermission;
 use App\Models\User;
+use App\Http\Traits\TableTrait;
+use App\Models\Table;
 
 function validatePermission(User $user, $id_permission)
 {
@@ -83,6 +86,10 @@ function getDay()
     $day = Day::whereNull('finish_day')->orderBy('created_at', 'DESC')->first();
     if (is_null($day)) {
         $day = Day::create(['total' => 0]);
+        $tables = Table::where('state', 1)->orderBy('id', 'ASC')->get();
+        foreach ($tables as $table) {
+            HistoryTable::create(['day_id' => $day->id, 'table_id' => $table->id, 'time' => 0]);
+        }
     }
     return $day;
 }
