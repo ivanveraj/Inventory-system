@@ -14,6 +14,7 @@ class SaleTable extends Model
         'type',
         'client'
     ];
+    
     protected $dates = [
         'start_time',
     ];

@@ -1,13 +1,12 @@
-<nav class="flex flex-wrap items-center justify-between px-4 py-2 mx-6 transition-all shadow-none duration-250 ease-soft-in rounded-2xl lg:flex-nowrap lg:justify-start sticky top-[1%] backdrop-saturate-[200%] backdrop-blur-[30px] bg-[hsla(0,0%,100%,0.8)] shadow-blur z-110" navbar-main="" navbar-scroll="true">
+<nav class="flex flex-wrap items-center justify-between px-4 py-2 mx-6 transition-all shadow-none duration-250 ease-soft-in rounded-2xl lg:flex-nowrap lg:justify-start sticky top-[1%] backdrop-saturate-[200%] backdrop-blur-[30px] bg-[hsla(0,0%,100%,0.8)] shadow-blur z-110"
+    navbar-main="" navbar-scroll="true">
     <div class="flex items-center justify-between w-full px-0 py-1 mx-auto flex-wrap-inherit">
         <nav>
-            <!-- breadcrumb -->
             <ol class="flex flex-wrap pt-1 mr-12 bg-transparent rounded-lg sm:mr-16">
                 <li class="leading-normal text-size-sm">
-                    <a class="opacity-50 text-slate-700" href="javascript:;">Inicio</a>
+                    <a class="opacity-50 text-slate-700" href="/">Inicio</a>
                 </li>
                 @yield('breadcrumb')
-    
             </ol>
             <h6 class="mb-0 font-bold capitalize text-xl ">@yield('title_page')</h6>
         </nav>

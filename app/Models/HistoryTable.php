@@ -9,7 +9,6 @@ class HistoryTable extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'id',
         'day_id',
         'table_id',
         'time'
@@ -17,7 +16,7 @@ class HistoryTable extends Model
 
     public function Table()
     {
-        return $this->belongsTo(Table::class, 'table_id');
+        return $this->belongsTo(Table::class, 'table_id'); 
     }
     
     public function Day()

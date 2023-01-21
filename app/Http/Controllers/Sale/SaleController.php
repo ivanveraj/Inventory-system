@@ -10,6 +10,7 @@ use App\Http\Traits\SettingTrait;
 use App\Http\Traits\TableTrait;
 use App\Models\HistoryProductSale;
 use App\Models\HistorySale;
+use App\Models\HistoryTable;
 use App\Models\Product;
 use App\Models\SaleTable;
 use Illuminate\Http\Request;
@@ -210,7 +211,6 @@ class SaleController extends Controller
 
     public function detail($sale_id)
     {
-
         $sale = $this->getSale($sale_id);
         if (is_null($sale)) {
             return AccionIncorrecta('', '');
@@ -245,13 +245,18 @@ class SaleController extends Controller
 
     public function accountPayment(Request $rq)
     {
+        $day = getDay();
+        if (is_null($day)) {
+            return AccionIncorrecta('', 'No existe el dia, por favor recargar');
+        }
+
         $rq->validate([
             'sale_id' => 'required',
         ]);
 
         $sale = $this->getSale($rq->sale_id);
         if (is_null($sale)) {
-            return AccionIncorrecta('', '');
+            return AccionIncorrecta('', 'No existe la venta, por favor recargar');
         }
 
         $time = 0;
@@ -268,27 +273,31 @@ class SaleController extends Controller
             }
         }
 
-        if ($sale->type == 2) {
+
+        if ($sale->type == 1) {
+            $table = $sale->Table;
+            $client = is_null($table) ? 'Mesa X' : $table->name;
+        } else {
             $priceTime = 0;
+            $client = is_null($sale->client) ? 'Sin nombre' : $sale->client;
         }
 
         $total = $priceTime;
         $extras = $sale->Extras;
 
-        $next = HistoryProductSale::orderBy('id', 'desc')->first();
-        $next = is_null($next) ? 1 : $next->id + 1;
 
+        $historySale = $this->createHistorySale($client, 0, $priceTime, $time);
         foreach ($extras as $ext) {
-            $this->createHistoryProductSale($next, $ext->product_id, $ext->amount, $ext->price);
+            $this->createHistoryProductSale($historySale->id, $ext->product_id, $ext->amount, $ext->price);
             $total += $ext->total;
         }
 
-        $day = getDay();
         $day->total += $total;
         $day->save();
 
-        $this->createHistorySale($next, $total, $priceTime, $time);
-        
+        $historySale->total = $total;
+        $historySale->save();
+
         if ($sale->type == 1) {
             $this->deleteSaleAllTable($sale);
             $this->addTimeHistoryTable($day->id, $sale->table_id, $time);
@@ -298,11 +307,32 @@ class SaleController extends Controller
 
         return AccionCorrecta('', '');
     }
+
     public function detail_sales()
     {
-        return redirect()->back();
-        /*     $historyTables = HistorySale::orderBy('created_at', 'DESC')->all();
-        $historyProductSales = HistoryProductSale::all(); */
-        return view('history.sale_history', compact('historyTables', 'historyProductSales'));
+        $priceTime = $this->getSetting('PrecioXHora');
+        $historySales = HistorySale::orderBy('created_at', 'DESC')->get();
+
+
+        $historyProductSales = HistoryProductSale::orderBy('created_at', 'DESC')->get();
+        return view('history.sale_history', compact('historySales', 'historyProductSales'));
+    }
+
+    public function histoyDetail($history_id)
+    {
+        $historyS = $this->getHistorySale($history_id);
+        if (is_null($historyS)) {
+            return AccionIncorrecta('', '');
+        }
+
+        $extras = $this->getHistoryProductsSale($history_id);
+        if (is_null($extras)) {
+            return AccionIncorrecta('', '');
+        }
+
+
+        $total = $historyS->total;
+        
+        return view('history.detail', compact('total', 'extras','historyS'));
     }
 }

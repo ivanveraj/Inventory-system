@@ -10,9 +10,13 @@ class HistorySale extends Model
     use HasFactory;
     protected $fillable = [
         'id',
+        'client',
         'total',
-        'sale',
         'time',
         'price_time'
     ];
+    public function Table()
+    {
+        return $this->belongsTo(Table::class, 'table_id'); 
+    }
 }

@@ -5,7 +5,6 @@
 
 
 @section('content')
-
     @if (!is_null($day) && !is_null($historyTables))
         <x-card>
             <h4 class="text-center">Resumen del dia</h4>

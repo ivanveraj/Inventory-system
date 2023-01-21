@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('history_sales', function (Blueprint $table) {
             $table->id();
-            $table->integer('sale');
+            $table->string('client');
             $table->double('total');
             $table->integer('time')->nullable();
             $table->double('price_time')->nullable();

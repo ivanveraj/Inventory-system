@@ -17,22 +17,31 @@ trait GeneralTrait
             'permissionG_id' => $permissionG_id
         ]);
     }
-    public function createHistorySale($sale,$total, $price_time, $time)
+    public function createHistorySale($client,$total, $price_time, $time)
     {
         return HistorySale::create([
-            'sale'=>$sale,
+            'client'=>$client,
             'total' => $total,
             'price_time' => $price_time,
             'time' => $time
         ]);
     }
-    public function createHistoryProductSale($sale, $product_id, $amount, $price)
+    public function createHistoryProductSale($history_sale, $product_id, $amount, $price)
     {
         return HistoryProductSale::create([
-            'sale' => $sale,
+            'history_sale' => $history_sale,
             'product_id' => $product_id,
             'amount' => $amount,
             'price' => $price
         ]);
     }
+    public function getHistorySale($history_id)
+    {
+        return HistorySale::where('id', $history_id)->first();
+    }
+    public function getHistoryProductsSale($history_id)
+    {
+        return HistoryProductSale::where('history_sale', $history_id)->get();
+    }
+    
 }

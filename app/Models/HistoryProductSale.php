@@ -9,9 +9,13 @@ class HistoryProductSale extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'sale',
+        'history_sale',
         'product_id',
         'amount',
         'price'
     ];
+    public function Product()
+    {
+        return $this->belongsTo(Product::class, 'product_id'); 
+    }
 }
