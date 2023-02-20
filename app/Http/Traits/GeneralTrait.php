@@ -17,13 +17,14 @@ trait GeneralTrait
             'permissionG_id' => $permissionG_id
         ]);
     }
-    public function createHistorySale($client,$total, $price_time, $time)
+    public function createHistorySale($client, $total, $price_time, $time, $user_id)
     {
         return HistorySale::create([
-            'client'=>$client,
+            'client' => $client,
             'total' => $total,
             'price_time' => $price_time,
-            'time' => $time
+            'time' => $time,
+            'user_id' => $user_id
         ]);
     }
     public function createHistoryProductSale($history_sale, $product_id, $amount, $price)
@@ -43,5 +44,4 @@ trait GeneralTrait
     {
         return HistoryProductSale::where('history_sale', $history_id)->get();
     }
-    
 }

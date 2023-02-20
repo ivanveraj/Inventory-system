@@ -4,8 +4,10 @@ namespace App\Http\Traits;
 
 use App\Models\Day;
 use App\Models\Extra;
+use App\Models\ExtraHasHistoryProduct;
 use App\Models\SaleTable;
 use App\Models\Table;
+use Illuminate\Support\Facades\DB;
 
 trait SaleTrait
 {
@@ -33,37 +35,37 @@ trait SaleTrait
             'client' => $client
         ]);
     }
-    public function getExtra($sale_id, $product_id)
+    public function getExtra($sale_id, $product_id, $historyP_id)
     {
-        return Extra::where('sale_id', $sale_id)->where('product_id', $product_id)->first();
+        return Extra::where('sale_id', $sale_id)->where('product_id', $product_id)->where('history_p', $historyP_id)->first();
     }
+
+    public function getExtras($sale_id, $product_id)
+    {
+        return Extra::where('sale_id', $sale_id)->where('product_id', $product_id)->get();
+    }
+
     public function getExtraById($id)
     {
         return Extra::where('id', $id)->first();
     }
-    public function addExtra($sale_id, $product, $amount)
+    public function addExtra($sale_id, $product, $historyP_id, $amount)
     {
-        $extra = $this->getExtra($sale_id, $product->id);
+        $extra = $this->getExtra($sale_id, $product->id,$historyP_id);
         if (is_null($extra)) {
-            Extra::create([
+            $extra = Extra::create([
                 'sale_id' => $sale_id,
+                'name' => $product->name,
                 'product_id' => $product->id,
-                'price' => $product->saleprice,
-                'amount' => $amount,
-                'total' => $product->saleprice * $amount
+                'history_p'=>$historyP_id,
+                'amount' => $amount
             ]);
-        } else {
+        }else{
             $extra->amount += $amount;
-            $extra->total = $extra->amount * $extra->price;
             $extra->save();
         }
     }
-    public function changeAmount($extra, $amount)
-    {
-        $extra->amount = $amount;
-        $extra->total = $extra->price * $amount;
-        $extra->save();
-    }
+
     public function deleteSaleAll($sale)
     {
         Extra::where('sale_id', $sale->id)->delete();
@@ -96,5 +98,11 @@ trait SaleTrait
         $day = Day::where('id', $day)->first();
         $day->total += $total;
         $day->save();
+    }
+
+    public function getExtrasSale($sale_id){
+        return DB::table('extras')->select('extras.*', 'products.name', 'products.saleprice')
+        ->leftJoin('products', 'extras.product_id', '=', 'products.id')
+        ->where('sale_id', $sale_id)->get();
     }
 }

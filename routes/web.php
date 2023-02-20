@@ -94,10 +94,14 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('dataGeneral', [SaleController::class, 'dataGeneral'])->name('sale.dataGeneral');
         Route::get('generalSale', [SaleController::class, 'generalSale'])->name('sales.generalSale');
         Route::get('tablesSales', [SaleController::class, 'tablesSales'])->name('sales.tablesSales');
-        Route::get('detail_sales', [SaleController::class, 'detail_sales'])->name('sales.detail_sale');
         Route::get('histoyDetail/{history_id?}', [SaleController::class, 'histoyDetail'])->name('sale.histoyDetail');
 
         Route::get('/', [SaleController::class, 'index'])->name('sales.index');
+    });
+
+    Route::group(['prefix' => 'history'], function () {
+        Route::get('detail_sales', [SaleController::class, 'detail_sales'])->name('sales.detail_sale');
+        Route::get('inventoryDiscount', [ProductController::class, 'inventoryDiscount'])->name('history.inventoryDiscount');
     });
 
 

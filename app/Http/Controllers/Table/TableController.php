@@ -23,12 +23,12 @@ class TableController extends Controller
 
         return DataTables::of($tables)
             ->addColumn('name', function ($table) {
-                return $table->name;
+                return '<span class="text-base">' . $table->name . '</span>';
             })
             ->addColumn('state', function ($table) {
                 $state = $table->state == 1 ? '<span
-                class="badge rounded-pill bg-success">Activo</span>' : '<span
-                class="badge rounded-pill bg-danger">Inactivo</span>';
+                class="badge rounded-pill bg-success" style="font-size:14px">Activo</span>' : '<span
+                class="badge rounded-pill bg-danger" style="font-size:14px">Inactivo</span>';
                 return $state;
             })
             ->addColumn('actions', function ($table) {

@@ -25,20 +25,20 @@ class UserController extends Controller
 
         return DataTables::of($users)
             ->addColumn('name', function ($user) {
-                return '<div class="flex justify-center">
+                return '<div class="flex justify-start">
                     <div class="mr-3">
-                        <img class="h-8 w-8 rounded-full object-cover" src="' . $user->profile_photo_url . '" >
+                        <img class="h-8 w-8 rounded-full object-cover borderBox" src="' . $user->profile_photo_url . '" >
                     </div>
-                    <div class="flex flex-col justify-center">
-                        <h6 class="mb-0 leading-normal text-sm">' . $user->name . '</h6>
-                        <p class="mb-0 leading-tight text-xs text-slate-400">' . $user->email . '</p>
+                    <div class="flex flex-col justify-center text-left">
+                        <h6 class="mb-0 text-sm">' . $user->name . '</h6>
+                        <p class="mb-0 text-xs">Usuario: ' . $user->user . '</p>
                     </div>
                 </div>';
             })
             ->addColumn('state', function ($user) {
                 $state = $user->state == 1 ? '  <span
-                class="badge rounded-pill bg-success">Activo</span>' : ' <span
-                class="badge rounded-pill bg-danger">Inactivo</span>';
+                class="badge rounded-pill bg-success" style="font-size:14px">Activo</span>' : ' <span
+                class="badge rounded-pill bg-danger" style="font-size:14px">Inactivo</span>';
                 return $state;
             })
             ->addColumn('rol', function ($user) {
@@ -53,8 +53,8 @@ class UserController extends Controller
                 $dropdown = '
                     <div class="btn-group">
                         <div class="btn-group dropstart" role="group">
-                            <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                                <span class="visually-hidden">Toggle Dropstart</span>
+                            <button type="button" class="btn bg-info text-white dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v"></i>
                             </button>
                             <ul class="dropdown-menu">
                             ' . $Edit . '

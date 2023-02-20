@@ -19,6 +19,8 @@ return new class extends Migration
             $table->double('total');
             $table->integer('time')->nullable();
             $table->double('price_time')->nullable();
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id')->references('id')->on('users');
             $table->timestamps();
         });
     }

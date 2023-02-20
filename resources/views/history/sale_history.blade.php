@@ -4,8 +4,7 @@
 @section('title_page', 'Historial de ventas')
 
 @section('breadcrumb')
-    <li class="text-size-sm pl-2 capitalize leading-normal text-slate-700 before:float-left before:pr-2 before:text-gray-600 before:content-['/']"
-        aria-current="page">Historial de ventas</li>
+    <li class="breadcrumb-item">Historial de ventas</li>
 @endsection
 
 @push('css')
@@ -13,42 +12,44 @@
 @endpush
 
 @section('content')
-    <x-card>
-        <div class="flex h-full flex-col break-words rounded-2xl border-0 border-solid bg-gray-100 bg-clip-border p-2 mb-3">
-            <div class="h-full">
-                <p class="text-center text-2xl font-extrabold">Historial de ventas</p>
-                <div>
-                    @foreach ($historySales as $historyT)
-                        @php
-                            $table = $historyT->Table;
-                        @endphp
-                        <div class="flex justify-between items-center w-full p-2" style="border-bottom: solid 1px gray">
-                            <div class="w-2/5">
-                                <p class="mb-0">{{ $historyT->client }}</p>
-                                <p class="italic mb-0 text-xs">Fecha: {{ $historyT->created_at }}</p>
-                            </div>
-                            <div class="row w-2/5">
-                                <div class="col-sm-6 text-center" style="padding: 0 !important">
-                                    <div><small>Tiempo</small></div>
-                                    <span>{{ $historyT->time }}</span>
+    <div class="card">
+        <div class="card-body">
+            <div
+                class="flex h-full flex-col break-words rounded-2xl border-0 border-solid bg-gray-100 bg-clip-border p-2 mb-3">
+                <div class="h-full">
+                    <div>
+                        @foreach ($historySales as $historyT)
+                            @php
+                                $table = $historyT->Table;
+                            @endphp
+                            <div class="flex justify-between items-center w-full p-2" style="border-bottom: solid 1px gray">
+                                <div class="w-2/5">
+                                    <p class="mb-0">{{ $historyT->client }}</p>
+                                    <p class="italic mb-0 text-xs">Fecha: {{ $historyT->created_at }}</p>
                                 </div>
-                                <div class="col-sm-6 text-center" style="padding: 0 !important">
-                                    <div><small>Total</small></div>
-                                    <span>${{ formatMoney($historyT->total) }}</span>
+                                <div class="row w-2/5">
+                                    <div class="col-sm-6 text-center" style="padding: 0 !important">
+                                        <div><small>Tiempo</small></div>
+                                        <span>{{ $historyT->time }}</span>
+                                    </div>
+                                    <div class="col-sm-6 text-center" style="padding: 0 !important">
+                                        <div><small>Total</small></div>
+                                        <span>${{ formatMoney($historyT->total) }}</span>
+                                    </div>
+                                </div>
+                                <div class="w-1/5 flex justify-center items-end">
+                                    <x-jet-button class="bg-info" data-toggle="tooltip" data-placement="top" type="button"
+                                        id="totalExtra" title="Detalle" onclick="viewDetail({{ $historyT->id }})">
+                                        <i class="fas fa-clipboard-list fa-2x"></i>
+                                    </x-jet-button>
                                 </div>
                             </div>
-                            <div class="w-1/5 flex justify-center items-end">
-                                <x-jet-button class="bg-info" data-toggle="tooltip" data-placement="top" type="button"
-                                    id="totalExtra" title="Detalle" onclick="viewDetail({{ $historyT->id }})">
-                                    <i class="fas fa-clipboard-list fa-2x"></i>
-                                </x-jet-button>
-                            </div>
-                        </div>
-                    @endforeach
+                        @endforeach
+                    </div>
                 </div>
             </div>
         </div>
-    </x-card>
+    </div>
 
     <div id="contModal"></div>
 @endsection
@@ -62,22 +63,26 @@
             }).done(function() {
                 unblockPage();
 
-                $("#modalDetail").modal('show')
+                $("#modalDetail").modal('show');
 
-                $('#detailTable').DataTable().destroy()
-                $('#detailTable').DataTable({
-                    responsive: true,
-                    searching: false,
-                    lengthChange: false,
-                    bInfo: false,
-                    columnDefs: [{
-                        width: "18%"
-                    }, {
-                        width: "64%"
-                    }, {
-                        width: "18%"
-                    }]
+                $('#modalDetail').on('shown.bs.modal', function() {
+                    $('#detailTable').DataTable().destroy()
+                    var table = $('#detailTable').DataTable({
+                        responsive: true,
+                        searching: false,
+                        lengthChange: false,
+                        bInfo: false,
+                        columnDefs: [{
+                            width: "18%"
+                        }, {
+                            width: "64%"
+                        }, {
+                            width: "18%"
+                        }]
+                    })
+                    table.columns.adjust().responsive.recalc();
                 });
+
             }).fail(function(r) {
                 unblockPage();
                 console.log(r);

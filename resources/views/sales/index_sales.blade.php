@@ -4,8 +4,7 @@
 @section('title_page', 'Gestion de ventas')
 
 @section('breadcrumb')
-    <li class="text-size-sm pl-2 capitalize leading-normal text-slate-700 before:float-left before:pr-2 before:text-gray-600 before:content-['/']"
-        aria-current="page">Gestion de ventas</li>
+    <li class="breadcrumb-item">Gestion de ventas</li>
 @endsection
 
 @push('css')
@@ -13,45 +12,81 @@
 @endpush
 
 @section('content')
-    <x-card>
-        @if (!$day)
-            <div class="flex justify-center items-center mb-4">
-                <x-jet-button type="button" class="finish_day" onclick="initDay()">Iniciar el dia
-                </x-jet-button>
-            </div>
-            <p class="text-justify p-6">Iniciar dia: Apartir del momento en que se inicia el dia se empezara a contar cada
-                venta de cada producto, ademas de contar el tiempo consumido
-                por cada una de las mesas. Cada venta sera contada y al finalizar el dia se debera tener en caja lo
-                vendido.
-            </p>
-        @else
-            <div class="flex justify-center items-center mb-4">
-                <x-jet-danger-button type="button" class="finish_day" onclick="finishDay()">Finalizar el dia
-                </x-jet-danger-button>
-            </div>
-        @endif
+    <div class="card">
+        <div class="card-body">
 
-        @if ($day)
-            <div class="flex justify-end mr-3">
-                <button type="button" onclick="reloadTable()" data-toggle="tooltip" data-placement="top" title="Recargar">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
+            @if (!$day)
+                <div class="flex justify-center items-center">
+                    <x-jet-button type="button" class="finish_day" onclick="initDay()">Iniciar el dia
+                    </x-jet-button>
+                </div>
+
+                <ul class="max-w-md space-y-1 text-gray-500 list-inside mt-3 mx-4 pl-0">
+                    <li class="flex items-center">
+                        <i class="fas fa-check-circle mr-2 text-green-400"></i>
+                        <p class="mb-0">Iniciar dia: Apartir del momento en que se inicia el dia se empezara a
+                            contar cada venta de cada producto.
+                        </p>
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check-circle mr-2 text-green-400"></i>
+                        <p class="mb-0">Tambien se contara el tiempo consumido y el total recaudado por cada una de las
+                            mesas.
+                        </p>
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check-circle mr-2 text-green-400"></i>
+                        <p class="mb-0">Cada venta sera contada y al finalizar el dia se debera tener en caja lo vendido.
+                        </p>
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check-circle mr-2 text-green-400"></i>
+                        <p class="mb-0">Al finalizar el dia se podra ver el total recaudado o yendo directamente al dashboard.
+                        </p>
+                    </li>
+                </ul>
+                
+            @else
+                <div class="flex justify-center items-center">
+                    <x-jet-danger-button type="button" class="finish_day" onclick="finishDay()">Finalizar el dia
+                    </x-jet-danger-button>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    @if ($day)
+        <div class="card">
+            <div class="card-body">
+                <div class="flex justify-start mb-3">
+                    <button type="button" onclick="reloadTable()" data-toggle="tooltip" data-placement="top"
+                        title="Recargar">
+                        <i class="fas fa-sync-alt"></i> Recargar
+                    </button>
+                </div>
+                <div id="table_sale"></div>
             </div>
-            <div id="table_sale"></div>
-            <hr class="h-2 mx-0 my-3 bg-black" />
-            <h5 class="text-center">Ventas generales</h5>
-            <div class="flex justify-center mt-2 mb-4">
-                <x-jet-button type="button" onclick="newSaleGeneral()">Nueva venta</x-jet-button>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-white">
+                <span class="text-base">Ventas generales</span>
             </div>
-            <div class="flex justify-end mr-3">
-                <button type="button" onclick="reloadGeneral()" data-toggle="tooltip" data-placement="top"
-                    title="Recargar">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
+            <div class="card-body">
+                <div class="flex justify-between items-center mb-3">
+                    <button type="button" onclick="reloadGeneral()" data-toggle="tooltip" data-placement="top"
+                        title="Recargar">
+                        <i class="fas fa-sync-alt"></i> Recargar
+                    </button>
+                    <x-jet-button type="button" onclick="newSaleGeneral()">Nueva venta</x-jet-button>
+                </div>
+                <div id="table_general"></div>
             </div>
-            <div id="table_general"></div>
-        @endif
-    </x-card>
+        </div>
+    @endif
+
+
+
     <div id="contModal"></div>
 @endsection
 @push('js')
@@ -69,9 +104,9 @@
             let minutes = $('#minutes_' + sale_id)
             let seconds = $('#seconds_' + sale_id)
 
-            let labelHours = hours.data('time');
-            let labelMinutes = minutes.data('time');
-            let labelSeconds = seconds.data('time');
+            let labelHours = Math.round(hours.data('time'));
+            let labelMinutes = Math.round(minutes.data('time'));
+            let labelSeconds = Math.round(seconds.data('time'));
 
             labelSeconds++;
             if (labelSeconds === 60) {
@@ -122,7 +157,19 @@
             $.get(`{{ route('sales.tablesSales') }}`, function(r) {
                 $("#table_sale").html(r);
             }).done(function(r) {
-                $('[data-toggle="tooltip"]').tooltip();
+                $('[data-toggle="tooltip"], .tooltip').tooltip("hide");
+                $('#sales').DataTable().destroy()
+                $('#sales').DataTable({
+                    responsive: true,
+                    searching: false,
+                    lengthChange: false,
+                    bInfo: false,
+                    "drawCallback": function(settings) {
+                        $('[data-toggle="tooltip"]').tooltip();
+                    },
+                    language: lang
+                });
+
                 $.get(`{{ route('sale.dataGeneral') }}?type=${1}`, function(r) {
                     let general = r.general
                     $.each(general, function(i, value) {
@@ -133,15 +180,20 @@
                         }
 
                         initSelectProduct("#selectProduct_" + general_id,
-                            "{{ route('sale.products') }}")
-                        initFormAddProduct(general_id, 1)
+                            "{{ route('sale.products') }}");
+                        initFormAddProduct(general_id, 1);
 
-                        $.each(value.extras, function(i, value) {
-                            $("#amountExtra_" + value.id).on('input', function() {
+                        $.each(value.ArrayExtras, function(i, value) {
+                            console.log(value.product_id);
+                            $("#amountExtra_" + value.product_id).on('input', function() {
                                 if ($(this).val() < 0) {
                                     $(this).val(0)
+                                } else {
+                                    console.log("aaa");
+                                    $(this).val($(this).val())
                                 }
-                                somechange(general_id, value.id, $(this).val())
+                                somechange(general_id, value.product_id, $(this)
+                                    .val());
                             });
                         });
                     });
@@ -153,18 +205,20 @@
             $.get(`{{ route('sales.generalSale') }}`, function(r) {
                 $("#table_general").html(r);
             }).done(function(r) {
-                unblockPage()
+                unblockPage();
 
+                $('[data-toggle="tooltip"], .tooltip').tooltip("hide");
                 $('#general').DataTable().destroy()
                 $('#general').DataTable({
                     responsive: true,
                     searching: false,
                     lengthChange: false,
                     bInfo: false,
+                    language: lang,
                     "drawCallback": function(settings) {
                         $('[data-toggle="tooltip"]').tooltip();
                     }
-                })
+                });
 
                 $.get(`{{ route('sale.dataGeneral') }}?type=${2}`, function(r) {
                     let general = r.general
@@ -176,8 +230,11 @@
 
                         $.each(value.extras, function(i, value) {
                             $("#amountExtra_" + value.id).on('input', function() {
+                                console.log($(this).val());
                                 if ($(this).val() < 0) {
                                     $(this).val(0)
+                                } else {
+                                    $(this).val($(this).val())
                                 }
                                 somechange(general_id, value.id, $(this).val())
                             });
@@ -189,18 +246,20 @@
             });
         }
 
-        function somechange(i, extra_id, amount) {
+        function somechange(sale_id, product_id, amount) {
             $.ajax({
                 type: "GET",
                 dataType: "json",
                 url: "{{ route('sale.changeAmountExtra') }}",
                 data: {
                     'amount': amount,
-                    'extra_id': extra_id
+                    'product_id': product_id,
+                    'sale_id': sale_id
                 },
                 success: function(r) {
-                    if (r.status == 1) {
-                        $('#totalExtra_' + i).html(r.data);
+                    console.log(r);
+                    if (r.status === 1) {
+                        $('#totalExtra_' + sale_id).html(r.data);
                     } else {
                         addToastr(r.type, r.title, r.message)
                     }
@@ -245,12 +304,12 @@
                 },
                 dataType: "json",
                 success: function(r) {
-                    unblockPage()
+                    unblockPage();
                     addToastr(r.type, r.title, r.message)
                     reloadGeneral();
                 },
                 error: function(r) {
-                    unblockPage()
+                    unblockPage();
                 }
             });
         }
@@ -269,32 +328,30 @@
                     processData: false,
                     dataType: "json",
                     success: function(r) {
-                        if (r.status == 1) {
-                            if (type == 1) {
-                                reloadTable()
-                            } else {
-                                reloadGeneral()
-                            }
+                        if (r.status === 1) {
+                            type === 1 ? reloadTable() : reloadGeneral();
                         } else {
-                            addToastr(r.type, r.title, r.message)
+                            addToastr(r.type, r.title, r.message);
                         }
-                        unblockPage()
+                        unblockPage();
                     },
                     error: function(r) {
-                        unblockPage()
+                        console.log(r);
+                        unblockPage();
                     }
                 });
             });
         }
 
-        function deleteExtra(extra_id, type) {
+        function deleteExtra(product_id, sale_id, type) {
             $.ajax({
                 type: "POST",
                 dataType: "json",
                 url: "{{ route('sale.deleteExtra') }}",
                 data: {
                     "_token": "{{ csrf_token() }}",
-                    'extra_id': extra_id,
+                    'product_id': product_id,
+                    'sale_id': sale_id
                 },
                 success: function(r) {
                     if (r.status == 1) {
@@ -321,20 +378,26 @@
 
                 $("#modalPayment").modal('show')
 
-                $('#detailTable').DataTable().destroy()
-                $('#detailTable').DataTable({
-                    responsive: true,
-                    searching: false,
-                    lengthChange: false,
-                    bInfo: false,
-                    columnDefs: [{
-                        width: "18%"
-                    }, {
-                        width: "64%"
-                    }, {
-                        width: "18%"
-                    }]
-                })
+                $('#modalPayment').on('shown.bs.modal', function() {
+                    $('#detailTable').DataTable().destroy()
+                    var table = $('#detailTable').DataTable({
+                        responsive: true,
+                        searching: false,
+                        lengthChange: false,
+                        bInfo: false,
+                        columnDefs: [{
+                            width: "18%"
+                        }, {
+                            width: "64%"
+                        }, {
+                            width: "18%"
+                        }]
+                    })
+                    table.columns.adjust().responsive.recalc();
+                });
+
+
+
 
                 $('#FormPayment').submit(function(e) {
                     e.preventDefault();

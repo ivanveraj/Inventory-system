@@ -1,6 +1,9 @@
 
 $(function () {
-    $('[data-toggle="tooltip"]').tooltip()
+    $('[data-toggle="tooltip"]').tooltip();
+    navActive = $('body').data('active');
+    $('.nav-link').removeClass('active');
+    $('.' + navActive).addClass('active');
 });
 
 

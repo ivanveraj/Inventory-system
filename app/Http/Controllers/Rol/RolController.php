@@ -29,27 +29,29 @@ class RolController extends Controller
                 return $rol->name;
             })
             ->addColumn('users_associated', function ($rol) {
-                return '<span class="badge bg-primary">' . TotalUserAssociated($rol->id) . '</span>';
+                return '<span class="badge bg-primary" style="font-size:14px">' . TotalUserAssociated($rol->id) . '</span>';
             })
             ->addColumn('state', function ($user) {
                 $state = $user->state == 1 ? '  <span
-                class="badge rounded-pill bg-success">Activo</span>' : ' <span
-                class="badge rounded-pill bg-danger">Inactivo</span>';
+                class="badge rounded-pill bg-success" style="font-size:14px">Activo</span>' : ' <span
+                class="badge rounded-pill bg-danger" style="font-size:14px">Inactivo</span>';
                 return $state;
             })
             ->addColumn('permissions', function ($rol) {
-                $associatedP = '<button onclick="permissionsRol(' . $rol->id . ')" type="button" class="btn btn-primary">
+                $associatedP = '<button onclick="permissionsRol(' . $rol->id . ')" type="button" class="btn bg-primary text-white" data-toggle="tooltip" data-placement="top" title="Modificar permisos del rol">
                 <i class="fa fa-address-book"></i> Permisos</button>';
                 return $associatedP;
             })
             ->addColumn('actions', function ($rol) {
-                $Edit =  '<button onclick="editRol(' . $rol->id . ')" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="top" title="Editar">
-                <i class="fas fa-edit"></i></button>';
-                $msj = $rol->state == 1 ? 'Archivar' : 'Activar';
-                $icon = $rol->state == 1 ? '<i class="fas fa-trash"></i>' : '<i class="fas fa-sync-alt"></i>';
-                $Archive =  '<button onclick="archiveRol(' . $rol->id . ',' . $rol->state . ')" class="btn btn-primary btn-sm ml-2" data-toggle="tooltip" data-placement="top" title="' . $msj . '">' . $icon . '</button>';
-
-                return "<center>$Edit $Archive</center>";
+                if (!in_array($rol->id, [1, 2, 3])) {
+                    $Edit =  '<button onclick="editRol(' . $rol->id . ')" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="top" title="Editar">
+                    <i class="fas fa-edit"></i></button>';
+                    $msj = $rol->state == 1 ? 'Archivar' : 'Activar';
+                    $icon = $rol->state == 1 ? '<i class="fas fa-trash"></i>' : '<i class="fas fa-sync-alt"></i>';
+                    $Archive =  '<button onclick="archiveRol(' . $rol->id . ',' . $rol->state . ')" class="btn btn-primary btn-sm ml-2" data-toggle="tooltip" data-placement="top" title="' . $msj . '">' . $icon . '</button>';
+                    return "<center>$Edit $Archive</center>";
+                }
+                return "<center>No modificable</center>";
             })
             ->rawColumns(['name', 'users_associated', 'permissions', 'state', 'actions'])->make(true);
     }
@@ -75,6 +77,10 @@ class RolController extends Controller
             return AccionIncorrecta('', '');
         }
 
+        if (in_array($rol->id, [1, 2, 3])) {
+            return AccionIncorrecta('', 'No modificable');
+        }
+
         return view('rols.edit_rol', compact('rol'));
     }
 
@@ -90,6 +96,10 @@ class RolController extends Controller
             return AccionIncorrecta('', '');
         }
 
+        if (in_array($rol->id, [1, 2, 3])) {
+            return AccionIncorrecta('', 'No modificable');
+        }
+
         $rol->name = $rq->name;
         $rol->save();
         return AccionCorrecta('', '');
@@ -99,7 +109,11 @@ class RolController extends Controller
     {
         $rol = $this->showRol($rq->rol_id);
         if (is_null($rol)) {
-            return AccionIncorrecta('', 'No se puede eliminar este rol');
+            return AccionIncorrecta('', 'No existe el rol');
+        }
+
+        if (in_array($rol->id, [1, 2, 3])) {
+            return AccionIncorrecta('', 'No modificable');
         }
 
         $rol->state = $rol->state == 0 ? 1 : 0;

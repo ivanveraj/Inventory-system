@@ -17,8 +17,6 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('code');
-            $table->bigInteger('amount');
-            $table->double('buyprice');
             $table->double('saleprice');
             $table->smallInteger('state');
             $table->timestamps();

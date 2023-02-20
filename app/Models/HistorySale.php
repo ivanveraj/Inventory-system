@@ -13,10 +13,15 @@ class HistorySale extends Model
         'client',
         'total',
         'time',
-        'price_time'
+        'price_time',
+        'user_id'
     ];
     public function Table()
     {
         return $this->belongsTo(Table::class, 'table_id'); 
+    }
+    public function User()
+    {
+        return $this->belongsTo(User::class, 'user_id'); 
     }
 }

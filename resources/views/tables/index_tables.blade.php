@@ -9,20 +9,21 @@
 @endsection
 
 @section('content')
-    <x-card>
-        <div class="flex justify-between my-3 p-2">
-            <div>
-                <button type="button" onclick="reloadTable()" data-toggle="tooltip" data-placement="top" title="Recargar">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="flex justify-between my-3 p-2">
+                <div>
+                    <button type="button" onclick="reloadTable()" data-toggle="tooltip" data-placement="top" title="Recargar">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <x-jet-button type="button" onclick="create()">Crear un nuevo producto</x-jet-button>
             </div>
-            <x-jet-button type="button" onclick="create()">Crear un nuevo producto</x-jet-button>
-        </div>
-        <div class="flex justify-center">
-            <table id="tables" class="p-4 items-center w-full align-top border-gray-200 text-slate-500 text-center">
-                <thead>
-                    <tr
-                        class="px-6 py-3 font-bold uppercase align-middle border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
+
+            <table id="tables" class="table dt-responsive nowrap w-100">
+                <thead class="bg-secondary text-white vertical-align-middle">
+                    <tr class="text-center">
                         <th>Mesa</th>
                         <th>Estado</th>
                         <th>Acciones</th>
@@ -30,7 +31,7 @@
                 </thead>
             </table>
         </div>
-    </x-card>
+    </div>
 
     <div id="contCreate"></div>
     <div id="contEdit"></div>
@@ -38,36 +39,31 @@
 @push('js')
     <script src="{{ asset('js/admin/sweetalert2.js') }}"></script>
     <script>
-        var state = document.getElementById('allTables');
-        var active = 0;
         $(function() {
             reloadTable()
         });
 
-        state.addEventListener('change', function() {
-            active = (active == 0) ? 1 : 0
-            reloadTable()
-        })
-
-
         function reloadTable() {
+            $('[data-toggle="tooltip"], .tooltip').tooltip("hide");
             $('#tables').DataTable().destroy()
             $('#tables').DataTable({
                 responsive: true,
                 processing: true,
                 serverSide: true,
+                "lengthMenu": [25, 50, 100, 200, 400, 600],
+                language: lang,
                 ajax: {
-                    url: "{{ route('tables.list') }}" + `?active=${active}`
+                    url: "{{ route('tables.list') }}"
                 },
                 columns: [{
                     data: 'name',
-                    width: '40%'
+                    width: '50%'
                 }, {
                     data: 'state',
-                    width: '30%'
+                    width: '25%'
                 }, {
                     data: 'actions',
-                    width: '30%'
+                    width: '25%'
                 }],
                 "drawCallback": function(settings) {
                     $('[data-toggle="tooltip"]').tooltip();
@@ -155,7 +151,7 @@
             });
         }
 
-        function archive(id,state) {
+        function archive(id, state) {
             let msj = state == 1 ? "Desea archivar la mesa" : "Desea activar la mesa"
             let sw = SweetConfirmation(msj, "Si", "No")
             sw.then(response => {

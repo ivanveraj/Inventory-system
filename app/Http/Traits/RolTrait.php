@@ -29,7 +29,7 @@ trait RolTrait
     }
     public function showRol($rol_id)
     {
-        return Rol::where('id', $rol_id)->whereNotIn('id', [1, 3])->first();
+        return Rol::where('id', $rol_id)->first();
     }
     public function createRol($name, $rolG_id)
     {

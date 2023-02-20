@@ -14,4 +14,12 @@ trait SettingTrait
         }
         return $setting->value;
     }
+    public function addSetting($group, $key, $value)
+    {
+        return Setting::create([
+            'group' => $group,
+            'key' => $key,
+            'value' =>  $value
+        ]);
+    }
 }

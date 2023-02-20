@@ -4,8 +4,7 @@
 @section('title_page', 'Gestion de roles')
 
 @section('breadcrumb')
-    <li class="text-size-sm pl-2 capitalize leading-normal text-slate-700 before:float-left before:pr-2 before:text-gray-600 before:content-['/']"
-        aria-current="page">Gestion de roles</li>
+    <li class="breadcrumb-item">Gestion de roles</li>
 @endsection
 
 @push('css')
@@ -16,21 +15,21 @@
     $LogUser = Auth::user();
 @endphp
 @section('content')
-    <x-card>
-        <div class="flex justify-between my-3 p-2">
-            <div>
-                <button type="button" onclick="reloadTable()" data-toggle="tooltip" data-placement="top" title="Recargar">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
+    <div class="card">
+        <div class="card-body">
+            <div class="flex justify-between my-3">
+                <div>
+                    <button type="button" onclick="reloadTable()" data-toggle="tooltip" data-placement="top"
+                        title="Recargar">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <x-jet-button type="button" onclick="create()">Crear un nuevo rol</x-jet-button>
             </div>
-            <x-jet-button type="button" onclick="create()">Crear un nuevo rol</x-jet-button>
-        </div>
 
-        <div class="flex justify-center">
-            <table id="Roles" class="p-4 items-center w-full align-top border-gray-200 text-slate-500 text-center">
-                <thead>
-                    <tr
-                        class="px-6 py-3 font-bold uppercase align-middle border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
+            <table id="Roles" class="table dt-responsive nowrap w-100">
+                <thead class="bg-secondary text-white vertical-align-middle">
+                    <tr class="text-center">
                         <th>Rol</th>
                         <th>Usuarios asociados</th>
                         <th>Estado</th>
@@ -40,7 +39,8 @@
                 </thead>
             </table>
         </div>
-    </x-card>
+    </div>
+    </div>
 
     <div id="contCreateRol"></div>
     <div id="contEditRol"></div>
@@ -54,8 +54,14 @@
         });
 
         function reloadTable() {
+            $('[data-toggle="tooltip"], .tooltip').tooltip("hide");
             $('#Roles').DataTable().destroy()
             $('#Roles').DataTable({
+                dom: 'Bfrtip',
+                buttons: [
+                    'pageLength', 'excel'
+                ],
+                "lengthMenu": [25, 50, 100, 200, 400, 600],
                 responsive: true,
                 processing: true,
                 serverSide: true,
@@ -78,6 +84,7 @@
                     data: 'actions',
                     width: '20%'
                 }],
+                language: lang,
                 "drawCallback": function(settings) {
                     $('[data-toggle="tooltip"]').tooltip();
                 }

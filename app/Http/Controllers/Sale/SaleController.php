@@ -8,12 +8,15 @@ use App\Http\Traits\ProductTrait;
 use App\Http\Traits\SaleTrait;
 use App\Http\Traits\SettingTrait;
 use App\Http\Traits\TableTrait;
+use App\Models\HistoryProduct;
 use App\Models\HistoryProductSale;
 use App\Models\HistorySale;
-use App\Models\HistoryTable;
 use App\Models\Product;
 use App\Models\SaleTable;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class SaleController extends Controller
 {
@@ -51,6 +54,24 @@ class SaleController extends Controller
     public function tablesSales()
     {
         $sales = $this->getSalesType(1);
+        foreach ($sales as $sale) {
+            $arrayE = [];
+            $total = 0;
+            $extras = DB::table('extras')->select('extras.*', 'products.name', 'products.saleprice')
+                ->leftJoin('products', 'extras.product_id', '=', 'products.id')
+                ->where('sale_id', $sale->id)->get();
+            foreach ($extras as $extra) {
+                $total += $extra->saleprice * $extra->amount;
+                if (isset($arrayE[$extra->product_id])) {
+                    $arrayE[$extra->product_id]['amount'] += $extra->amount;
+                } else {
+                    $arrayE[$extra->product_id] = ['product_id' => $extra->product_id, 'extra_id' => $extra->id, 'name' => $extra->name, 'amount' => $extra->amount, 'price' => $extra->saleprice];
+                }
+            }
+            $sale->ArrayExtras = $arrayE;
+            $sale->total = $total;
+        }
+
         $TiempoMinimo = $this->getSetting('TiempoMinimo');
         $PrecioXHora = $this->getSetting('PrecioXHora');
         $PrecioMinimo = $this->getSetting('PrecioMinimo');
@@ -59,7 +80,6 @@ class SaleController extends Controller
 
     //Ventas generales
     public function generalSale()
-
     {
         $general = $this->getSalesType(2);
         return view('sales.general_sales', compact('general'));
@@ -75,26 +95,32 @@ class SaleController extends Controller
     {
         $rq->validate([
             'sale_id' => 'required',
-            'product_id' => 'required',
-            'amount' => 'required|integer|min:1'
         ]);
-
-        $product = $this->getProduct($rq->product_id);
-        if (is_null($product)) {
-            return AccionIncorrecta('', '');
-        }
 
         $sale = $this->getSale($rq->sale_id);
         if (is_null($sale)) {
-            return AccionIncorrecta('', '');
+            return AccionIncorrecta('', 'No existe o se encuentra inactiva la venta');
         }
 
-        if ($product->state != 1 || $product->amount < $rq->amount) {
-            return AccionIncorrecta('', '');
+        $product = $this->getProduct($rq->product_id);
+        if (is_null($product)) {
+            return AccionIncorrecta('', 'No existe o se encuentra inactivo el producto');
         }
 
-        $this->addExtra($sale->id, $product, $rq->amount);
-        $this->discount($product, $rq->amount);
+        if ($product->state != 1) {
+            return AccionIncorrecta('', 'No existe o se encuentra inactivo el producto');
+        }
+
+        if ($rq->amount < 1) {
+            return AccionIncorrecta('', 'La cantidad debe ser mayor a 0');
+        }
+
+        $amount = round($rq->amount);
+        if ($this->getAmountProduct($product->id) < $amount) {
+            return AccionIncorrecta('', 'No existe la cantidad solicitada en el inventario');
+        }
+
+        $this->discount($sale->id, $product, $amount);
 
         return AccionCorrecta('', '');
     }
@@ -103,13 +129,14 @@ class SaleController extends Controller
     {
         if (isset($rq->searchTerm)) {
             $searchTerm = strtoupper($rq->searchTerm);
-            $products = Product::where('state', 1)->where('amount', '>', 0)->where('code', 'LIKE', "%" . $searchTerm . "%")->get();
+            $products = Product::where('state', 1)->whereNotIn('id', $this->notAvailable())->where('code', 'LIKE', "%" . $searchTerm . "%")->get();
         } else {
             $products = $this->getProductsStock();
         }
         $array = [];
         foreach ($products as $product) {
-            $array[] = ['id' => $product->id, 'text' => $product->name . " (" . $product->code . ") [$product->amount]"];
+            $amount = $this->getAmountProduct($product->id);
+            $array[] = ['id' => $product->id, 'text' => $product->name . " (" . $product->code . ") [$amount]"];
         }
         return response()->json($array);
     }
@@ -134,48 +161,92 @@ class SaleController extends Controller
     {
         $type = is_null($rq->type) ? 1 : $rq->type;
         $type = $type == 1 ? 1 : 2;
+
         $general = $this->getSalesType($type);
         foreach ($general as $sale) {
-            $sale->Extras;
+            $arrayE = [];
+            $extras = DB::table('extras')->select('extras.*', 'products.name', 'products.saleprice')
+                ->leftJoin('products', 'extras.product_id', '=', 'products.id')
+                ->where('sale_id', $sale->id)->get();
+            foreach ($extras as $extra) {
+                if (isset($arrayE[$extra->product_id])) {
+                    $arrayE[$extra->product_id]['amount'] += $extra->amount;
+                } else {
+                    $arrayE[$extra->product_id] = ['product_id' => $extra->product_id, 'extra_id' => $extra->id, 'name' => $extra->name, 'amount' => $extra->amount, 'price' => $extra->saleprice];
+                }
+            }
+            $sale->ArrayExtras = $arrayE;
         }
+
         return response()->json(['general' => $general]);
     }
 
     public function changeAmountExtra(Request $rq)
     {
-        $amount = is_null($rq->amount) || $rq->amount < 0 ? 0 : $rq->amount;
-        $extra = $this->getExtraById($rq->extra_id);
-        if (is_null($extra)) {
-            return AccionIncorrecta('', 'No existe este producto en ninguna venta, recarge la pagina');
+        if ($rq->amount < 1) {
+            return AccionIncorrecta('', 'La cantidad debe ser mayor a 0');
         }
+        $amount = round($rq->amount);
 
-        $sale = $this->getSale($extra->sale_id);
+        $sale = $this->getSale($rq->sale_id);
         if (is_null($sale)) {
             return AccionIncorrecta('', 'No existe ninguna venta asociada a este producto extra');
         }
 
-        $product = $extra->Product;
+        $product = $this->getProduct($rq->product_id);
         if (is_null($product)) {
-            return AccionIncorrecta('', 'No existe ese producto');
+            return AccionIncorrecta('', 'No existe o se encuentra inactivo el producto');
         }
 
-        /* si la cantidad que 90 y quiero quitar cervezas las cuales son 10 y quiero quitar 5 me deben quedar 95 */
-        $diff = $amount - $extra->amount;
+        $extras = $this->getExtras($sale->id, $product->id);
 
-        if ($product->amount < $diff) {
+        $extrasAmount = $extras->sum('amount');
+        $diff = $amount - $extrasAmount;
+        if ($this->getAmountProduct($product->id) < $diff) {
             return AccionIncorrecta('', 'No existe la cantidad solicitada en el inventario');
         }
+
         $diff = abs($diff);
-        if ($amount > $extra->amount) {
-            $this->discount($product, $diff);
+        if ($amount > $extrasAmount) {
+            $this->discount($sale->id, $product, $diff);
         } else {
-            $this->addAmount($product, $diff);
+            foreach ($extras as $extra) {
+                $historyP = $this->getHistoryProduct2($extra->history_p);
+
+                if ($extra->amount >= $diff) {
+                    $historyP->amount += $diff;
+                    $historyP->save();
+
+                    $extra->amount = $extra->amount - $diff;
+                    $extra->save();
+                    break;
+                } else {
+
+                    if (($diff - $extra->amount) <= 0) {
+                        $historyP->amount += $diff;
+                        $historyP->save();
+
+                        $extra->amount -= $diff;
+                        $extra->save();
+                    } else {
+                        $diff = $diff - $extra->amount;
+
+                        $historyP->amount += $extra->amount;
+                        $historyP->save();
+
+                        $extra->delete();
+                    }
+                }
+            }
         }
-        $this->changeAmount($extra, $amount);
+
+
         $total = 0;
-        foreach ($sale->Extras as $ext) {
-            $total += $ext->total;
+        $extras = $this->getExtrasSale($sale->id);
+        foreach ($extras as $extra) {
+            $total += $extra->saleprice * $extra->amount;
         }
+
         return AccionCorrecta('', '', 1, $total);
     }
 
@@ -193,19 +264,25 @@ class SaleController extends Controller
 
     public function deleteExtra(Request $rq)
     {
-        $extra = $this->getExtraById($rq->extra_id);
-        if (is_null($extra)) {
-            return AccionIncorrecta('', '');
+        $sale = $this->getSale($rq->sale_id);
+        if (is_null($sale)) {
+            return AccionIncorrecta('', 'No existe ninguna venta con este identificador');
         }
 
-        $product = $extra->Product;
+        $product = $this->getProduct($rq->product_id);
         if (is_null($product)) {
-            return AccionIncorrecta('', 'No existe ese producto');
+            return AccionIncorrecta('', 'No existe o se encuentra inactivo el producto');
         }
 
-        $this->addAmount($product, $extra->amount);
+        $extras = $this->getExtras($sale->id, $product->id);
+        foreach ($extras as $extra) {
+            $historyP = $this->getHistoryProduct($product->id);
+            $historyP->amount += $extra->amount;
+            $historyP->save();
 
-        $extra->delete();
+            $extra->delete();
+        }
+
         return AccionCorrecta('', '');
     }
 
@@ -213,7 +290,7 @@ class SaleController extends Controller
     {
         $sale = $this->getSale($sale_id);
         if (is_null($sale)) {
-            return AccionIncorrecta('', '');
+            return AccionIncorrecta('', 'No existe ninguna venta con este identificador');
         }
 
         $total = 0;
@@ -236,10 +313,19 @@ class SaleController extends Controller
             $total = 0;
         }
 
-        $extras = $sale->Extras;
-        foreach ($extras as $ext) {
-            $total += $ext->total;
+
+        $extras = $this->getExtrasSale($sale->id);
+        $arrayE = [];
+        foreach ($extras as $extra) {
+            $total += $extra->saleprice * $extra->amount;
+            if (isset($arrayE[$extra->product_id])) {
+                $arrayE[$extra->product_id]['amount'] += $extra->amount;
+            } else {
+                $arrayE[$extra->product_id] = ['product_id' => $extra->product_id, 'extra_id' => $extra->id, 'name' => $extra->name, 'amount' => $extra->amount, 'price' => $extra->saleprice];
+            }
         }
+        $sale->ArrayExtras = $arrayE;
+
         return view('sales.detail', compact('total', 'sale', 'extras', 'time', 'priceTime'));
     }
 
@@ -250,13 +336,9 @@ class SaleController extends Controller
             return AccionIncorrecta('', 'No existe el dia, por favor recargar');
         }
 
-        $rq->validate([
-            'sale_id' => 'required',
-        ]);
-
         $sale = $this->getSale($rq->sale_id);
         if (is_null($sale)) {
-            return AccionIncorrecta('', 'No existe la venta, por favor recargar');
+            return AccionIncorrecta('', 'No existe ninguna venta con este identificador');
         }
 
         $time = 0;
@@ -283,13 +365,13 @@ class SaleController extends Controller
         }
 
         $total = $priceTime;
-        $extras = $sale->Extras;
+       
 
-
-        $historySale = $this->createHistorySale($client, 0, $priceTime, $time);
-        foreach ($extras as $ext) {
-            $this->createHistoryProductSale($historySale->id, $ext->product_id, $ext->amount, $ext->price);
-            $total += $ext->total;
+        $historySale = $this->createHistorySale($client, 0, $priceTime, $time, Auth::user()->id);
+        
+        foreach ($this->getExtrasSale($sale->id) as $ext) {
+            $this->createHistoryProductSale($historySale->id, $ext->product_id, $ext->amount, $ext->saleprice);
+            $total += $ext->saleprice * $ext->amount;
         }
 
         $day->total += $total;
@@ -330,9 +412,8 @@ class SaleController extends Controller
             return AccionIncorrecta('', '');
         }
 
-
         $total = $historyS->total;
-        
-        return view('history.detail', compact('total', 'extras','historyS'));
+
+        return view('history.detail', compact('total', 'extras', 'historyS'));
     }
 }

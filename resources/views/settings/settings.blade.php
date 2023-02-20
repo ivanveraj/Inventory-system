@@ -4,23 +4,22 @@
 @section('title_page', 'Configuraciones general')
 
 @section('breadcrumb')
-    <li class="text-size-sm pl-2 capitalize leading-normal text-slate-700 before:float-left before:pr-2 before:text-gray-600 before:content-['/']"
-        aria-current="page">Configuraciones general</li>
+    {{--  <li class="breadcrumb-item">
+        <a href="{{ route('ticket.detail', $ticket->id) }}" class="breadcrumb-item">{{ __('tickets.detalle_ticket') }}</a>
+    </li> --}}
+    <li class="breadcrumb-item active">Configuraciones general</li>
 @endsection
 
 @section('content')
-    <x-card>
         <form action="{{ route('settings.general') }}" method="POST" id="pool">
             @csrf
-            <div class="card card-primary">
-                <h5 class="card-header bg-primary"></h5>
+            <div class="card mb-3">
                 <div class="card-body">
-                    <div class="grid md:grid-cols-3 gap-4 justify-center align-middle md:px-36 sm:px-0 sm:grid-cols-1">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 justify-center align-middle ">
                         @foreach ($general as $conf)
-                            <div class="w-full">
+                            <div>
                                 <x-jet-label value="{{ $conf->key }}"></x-jet-label>
-                                <x-jet-input value="{{ $conf->value }}" type="number" name="{{ $conf->key }}"
-                                    class="w-full">
+                                <x-jet-input placeholder="{{ $conf->value }}" type="number" name="{{ $conf->key }}" class="w-full">
                                 </x-jet-input>
                             </div>
                         @endforeach
@@ -31,8 +30,6 @@
                 </div>
             </div>
         </form>
-    </x-card>
-
 @endsection
 
 @push('js')
