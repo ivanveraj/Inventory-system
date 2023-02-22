@@ -10,7 +10,7 @@ use App\Models\Table;
 
 function validatePermission(User $user, $id_permission)
 {
-    if ($user->rol_id == 1) {
+    if (in_array($user->rol_id, [1, 2])) {
         return true;
     }
     return session()->has('permissions') ? in_array($id_permission, session()->get('permissions')) : false;

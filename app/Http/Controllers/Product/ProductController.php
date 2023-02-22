@@ -201,7 +201,7 @@ class ProductController extends Controller
         ]);
 
         $LogUser = Auth::user();
-        if ($LogUser->rol_id != 1) {
+        if ($LogUser->id != 1) {
             $rq->validate([
                 'description' => 'required|string|max:255'
             ]);
@@ -233,9 +233,9 @@ class ProductController extends Controller
             }
         }
 
-        /*     if ($LogUser->rol_id != 1) { */
-        $this->addInventoryDiscount($product->id, $rq->amount, $rq->description, $LogUser->id);
-        /* } */
+        if ($LogUser->id != 1) {
+            $this->addInventoryDiscount($product->id, $rq->amount, $rq->description, $LogUser->id);
+        }
 
         return AccionCorrecta('', '');
     }

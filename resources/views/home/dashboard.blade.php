@@ -22,7 +22,7 @@
                                 Total en caja: ${{ formatMoney($currentSales) }}
                             </p>
                         </div>
-                        @if ($LogUser->rol_id == 1)
+                        @if (in_array($user->rol_id, [1, 2]))
                             <div class="alert bg-secondary text-white" role="alert">
                                 <p class="text-center font-bold text-xl mb-0 italic">
                                     Ganancias del dia: ${{ formatMoney($currentProfit) }}
@@ -95,7 +95,7 @@
                             Total en caja: ${{ formatMoney($lastSales) }}
                         </p>
                     </div>
-                    @if ($LogUser->rol_id == 1)
+                    @if (in_array($user->rol_id, [1, 2]))
                         <div class="alert bg-secondary text-white" role="alert">
                             <p class="text-center font-bold text-xl mb-0 italic">
                                 Ganancias del dia: ${{ formatMoney($lastProfit) }}
@@ -166,7 +166,7 @@
                 <thead class="bg-secondary text-white vertical-align-middle">
                     <tr class="text-center">
                         <th>Total</th>
-                        @if ($LogUser->rol_id == 1)
+                        @if (in_array($user->rol_id, [1, 2]))
                             <th>Ganancias</th>
                         @endif
                         <th>Fecha Inicio Dia</th>
@@ -177,7 +177,7 @@
                     @foreach ($salesTotal as $day)
                         <tr>
                             <td>${{ formatMoney($day->total) }}</td>
-                            @if ($LogUser->rol_id == 1)
+                            @if (in_array($user->rol_id, [1, 2]))
                                 <td>${{ formatMoney($day->profit) }}</td>
                             @endif
                             <td>{{ date('H:i d-M-Y', strtotime($day->created_at)) }}</td>

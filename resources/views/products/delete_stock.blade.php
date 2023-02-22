@@ -15,7 +15,7 @@
                         <ul class="parsley-errors-list filled" data-error="amount">
                         </ul>
                     </div>
-                    @if ($LogUser->rol_id != 1)
+                    @if ($LogUser->id != 1)
                         <div class="w-full">
                             <x-jet-label value="Justificación"></x-jet-label>
                             <textarea data-name="description" name="description" class="form-control" rows="5"></textarea>
