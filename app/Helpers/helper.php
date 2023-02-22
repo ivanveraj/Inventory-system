@@ -85,7 +85,7 @@ function getDay()
 {
     $day = Day::whereNull('finish_day')->orderBy('created_at', 'DESC')->first();
     if (is_null($day)) {
-        $day = Day::create(['total' => 0]);
+        $day = Day::create(['total' => 0, 'profit' => 0]);
         $tables = Table::where('state', 1)->orderBy('id', 'ASC')->get();
         foreach ($tables as $table) {
             HistoryTable::create(['day_id' => $day->id, 'table_id' => $table->id, 'time' => 0]);

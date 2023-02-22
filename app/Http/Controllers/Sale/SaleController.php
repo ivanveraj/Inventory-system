@@ -240,10 +240,8 @@ class SaleController extends Controller
             }
         }
 
-
         $total = 0;
-        $extras = $this->getExtrasSale($sale->id);
-        foreach ($extras as $extra) {
+        foreach ($this->getExtrasSale($sale->id) as $extra) {
             $total += $extra->saleprice * $extra->amount;
         }
 
@@ -365,16 +363,17 @@ class SaleController extends Controller
         }
 
         $total = $priceTime;
-       
+        $profit = $priceTime;
 
         $historySale = $this->createHistorySale($client, 0, $priceTime, $time, Auth::user()->id);
-        
         foreach ($this->getExtrasSale($sale->id) as $ext) {
             $this->createHistoryProductSale($historySale->id, $ext->product_id, $ext->amount, $ext->saleprice);
-            $total += $ext->saleprice * $ext->amount;
+            $total +=$ext->saleprice * $ext->amount;
+            $profit+=($ext->saleprice-$ext->buyprice)* $ext->amount;
         }
 
         $day->total += $total;
+        $day->profit += $profit;
         $day->save();
 
         $historySale->total = $total;

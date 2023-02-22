@@ -20,6 +20,11 @@ class Extra extends Model
         return $this->belongsTo(Product::class, 'product_id');
     }
 
+    public function HistoryProduct()
+    {
+        return $this->belongsTo(Product::class, 'history_p');
+    }
+
     public function SaleTable()
     {
         return $this->belongsTo(SaleTable::class, 'sale_id');

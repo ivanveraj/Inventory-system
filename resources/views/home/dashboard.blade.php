@@ -3,6 +3,9 @@
 @section('title', 'Dashboard')
 @section('title_page', 'Dashboard')
 
+@php
+    $LogUser = Auth::user();
+@endphp
 
 @section('content')
     @if (!is_null($day) && !is_null($historyTables))
@@ -10,35 +13,45 @@
             <div class="card-header bg-white">
                 <span class="text-base">Resumen del dia</span>
             </div>
-            <div class="card-body">
-                <div class="alert bg-secondary text-white" role="alert">
-                    <p class="text-center font-bold text-xl mb-0 italic">
-                        Total en caja: ${{ formatMoney($currentSales) }}
-                    </p>
-                </div>
-                <div class="flex w-full gap-2">
-                    <div class="alert bg-success text-white w-full" role="alert">
-                        <p class="text-center font-bold text-xl mb-0 italic">
-                            Total Recaudado X Productos: ${{ formatMoney($currentSales - $currentTValueTable) }}
-                        </p>
+            <div class="card-body ">
+                <div class="px-8">
+
+                    <div class="flex justify-center items-center w-full gap-2">
+                        <div class="alert bg-danger text-white" role="alert">
+                            <p class="text-center font-bold text-xl mb-0 italic">
+                                Total en caja: ${{ formatMoney($currentSales) }}
+                            </p>
+                        </div>
+                        @if ($LogUser->rol_id == 1)
+                            <div class="alert bg-secondary text-white" role="alert">
+                                <p class="text-center font-bold text-xl mb-0 italic">
+                                    Ganancias del dia: ${{ formatMoney($currentProfit) }}
+                                </p>
+                            </div>
+                        @endif
                     </div>
-                    <div class="alert bg-info text-white w-full" role="alert">
-                        <p class="text-center font-bold text-xl mb-0 italic">
-                            Total Recaudado X Tiempo: ${{ formatMoney($currentTValueTable) }}
-                        </p>
+                    <div class="flex justify-center items-center w-full gap-2">
+                        <div class="alert bg-success text-white w-full" role="alert">
+                            <p class="text-center font-bold text-xl mb-0 italic">
+                                Recaudado X Productos: ${{ formatMoney($currentSales - $currentTValueTable) }}
+                            </p>
+                        </div>
+                        <div class="alert bg-info text-white w-full" role="alert">
+                            <p class="text-center font-bold text-xl mb-0 italic">
+                                Recaudado X Tiempo: ${{ formatMoney($currentTValueTable) }}
+                            </p>
+                        </div>
                     </div>
-                </div>
-                <div class="flex justify-center ">
-                    <div class="w-full px-3 mb-6 lg:mb-0 lg:flex-none">
-                        <div
-                            class="flex bg-secondary h-full flex-col break-words rounded-2xl border-0 border-solid bg-clip-border p-4">
+
+                    <div class="flex justify-center">
+                        <div class="flex bg-secondary flex-col break-words rounded-2xl p-4">
                             <div class="flex flex-col flex-auto h-full text-white">
                                 <p class="text-center font-bold text-xl mb-1 italic">
                                     Recaudado en las mesas
                                 </p>
-                                <table class="w-full text-white text-center mb-3">
-                                    <thead class="bg-info">
-                                        <tr class="px-6 py-3 font-bold uppercase align-middle whitespace-nowrap text-white">
+                                <table class="text-white text-center mb-3">
+                                    <thead style="background-color: grey">
+                                        <tr class="px-6 py-3 font-bold text-white">
                                             <th>Mesa</th>
                                             <th>Tiempo</th>
                                             <th>Recaudado</th>
@@ -64,6 +77,7 @@
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -75,20 +89,30 @@
                 <span class="text-base">Resumen del ultimo dia</span>
             </div>
             <div class="card-body">
-                <div class="alert bg-warning text-black" role="alert">
-                    <p class="text-center font-bold text-xl mb-0 italic">
-                        Total en caja: ${{ formatMoney($lastSales) }}
-                    </p>
+                <div class="flex justify-center items-center w-full gap-2">
+                    <div class="alert bg-warning text-black" role="alert">
+                        <p class="text-center font-bold text-xl mb-0 italic">
+                            Total en caja: ${{ formatMoney($lastSales) }}
+                        </p>
+                    </div>
+                    @if ($LogUser->rol_id == 1)
+                        <div class="alert bg-secondary text-white" role="alert">
+                            <p class="text-center font-bold text-xl mb-0 italic">
+                                Ganancias del dia: ${{ formatMoney($lastProfit) }}
+                            </p>
+                        </div>
+                    @endif
                 </div>
-                <div class="flex w-full gap-2">
+
+                <div class="flex justify-center items-center w-full gap-2">
                     <div class="alert bg-success text-white w-full" role="alert">
                         <p class="text-center font-bold text-xl mb-0 italic">
-                            Total Recaudado X Productos: ${{ formatMoney($lastSales - $lastTValueTable) }}
+                            Recaudado X Productos: ${{ formatMoney($lastSales - $lastTValueTable) }}
                         </p>
                     </div>
                     <div class="alert bg-info text-white w-full" role="alert">
                         <p class="text-center font-bold text-xl mb-0 italic">
-                            Total Recaudado X Tiempo: ${{ formatMoney($lastTValueTable) }}
+                            Recaudado X Tiempo: ${{ formatMoney($lastTValueTable) }}
                         </p>
                     </div>
                 </div>
@@ -133,40 +157,36 @@
         </div>
     @endif
 
-    <div class="row">
-
-
-
-
-        <!-- end col -->
-    </div>
-
     <div class="card">
         <div class="card-header bg-white text-black">
-            <span class="text-base">Ventas de los ultimos 7 dias</span>
+            <span class="text-base">Resumen de las ventas totales</span>
         </div>
         <div class="card-body">
-            @foreach ($lastFourDay as $day)
-                <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
-                    <div
-                        class="relative flex flex-col min-w-0 break-words bg-secondary shadow-soft-xl rounded-2xl bg-clip-border">
-                        <div class="flex-auto p-4">
-                            <div class="flex flex-row -mx-3">
-                                <div class="w-full text-center rounded-lg">
-                                    <div class="">
-                                        <p class="mb-0 font-sans font-semibold leading-normal text-sm text-white">
-                                            {{ date('H:i d-M', strtotime($day->created_at)) . ' - ' . date('H:i d-M', strtotime($day->finish_day)) }}
-                                        </p>
-                                        <h5 class="mb-0 font-bold text-white">
-                                            {{ '$' . formatMoney($day->total) }}
-                                        </h5>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
+            <table id="Table" class="table dt-responsive nowrap w-100">
+                <thead class="bg-secondary text-white vertical-align-middle">
+                    <tr class="text-center">
+                        <th>Total</th>
+                        @if ($LogUser->rol_id == 1)
+                            <th>Ganancias</th>
+                        @endif
+                        <th>Fecha Inicio Dia</th>
+                        <th>Fecha Fin Dia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($salesTotal as $day)
+                        <tr>
+                            <td>${{ formatMoney($day->total) }}</td>
+                            @if ($LogUser->rol_id == 1)
+                                <td>${{ formatMoney($day->profit) }}</td>
+                            @endif
+                            <td>{{ date('H:i d-M-Y', strtotime($day->created_at)) }}</td>
+                            <td>{{ date('H:i d-M-Y', strtotime($day->finish_day)) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+
         </div>
     </div>
 
@@ -186,8 +206,26 @@
 @push('js')
     <script>
         $(function() {
+            reloadTable();
             /* initChart(); */
-        })
+        });
+
+        function reloadTable() {
+            $('#Table').DataTable({
+                dom: 'Bfrtip',
+                buttons: [
+                    'pageLength', 'excel'
+                ],
+                "lengthMenu": [25, 50, 100, 200, 400, 600],
+                responsive: true,
+                processing: true,
+                language: lang,
+
+            });
+        }
+
+
+
 
         function initChart() {
             var options = {

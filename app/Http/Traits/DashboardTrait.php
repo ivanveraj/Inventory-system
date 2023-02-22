@@ -6,9 +6,9 @@ use App\Models\Day;
 
 trait DashboardTrait
 {
-    public function getLastFourDay()
+    public function getSalesTotal()
     {
-        return Day::whereNotNull('finish_day')->orderBy('created_at', 'DESC')->limit(7)->get();
+        return Day::whereNotNull('finish_day')->orderBy('created_at', 'DESC')->get();
     }
     public function getLastDay()
     {

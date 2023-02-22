@@ -10,7 +10,8 @@ class Day extends Model
     use HasFactory;
     protected $fillable = [
         'id',
-        'total'
+        'total',
+        'profit'
     ];
     protected $dates = [
         'start_time',

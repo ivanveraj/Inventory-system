@@ -13,7 +13,7 @@ class DashboardController extends Controller
     use DashboardTrait, SettingTrait, TableTrait;
     public function dashboard()
     {
-        $lastFourDay = $this->getLastFourDay();
+        $salesTotal = $this->getSalesTotal();
         $priceTime = $this->getSetting('PrecioXHora');
 
         $day = getDayCurrent();
@@ -21,8 +21,10 @@ class DashboardController extends Controller
         $currentTTimeTable = 0;
         $currentTValueTable = 0;
         $currentSales = 0;
+        $currentProfit = 0;
         if (!is_null($day)) {
             $currentSales = $day->total;
+            $currentProfit = $day->profit;
             $historyTables = $this->getHistoryTables($day->id);
             foreach ($historyTables as $historyT) {
                 $saleXTable = round(($priceTime / 60) * $historyT->time);
@@ -37,8 +39,10 @@ class DashboardController extends Controller
         $lastTTimeTable = 0;
         $lastTValueTable = 0;
         $lastSales = 0;
+        $lastProfit = 0;
         if (!is_null($lastDay)) {
             $lastSales = $lastDay->total;
+            $lastProfit = $lastDay->profit;
             $lastHistoryTables = $this->getHistoryTables($lastDay->id);
             foreach ($lastHistoryTables as $historyT) {
                 $saleXTable = round(($priceTime / 60) * $historyT->time);
@@ -50,13 +54,15 @@ class DashboardController extends Controller
 
 
         return view('home.dashboard', compact(
-            'lastFourDay',
+            'salesTotal',
             'currentTTimeTable',
             'currentTValueTable',
             'currentSales',
+            'currentProfit',
             'day',
             'historyTables',
             'lastDay',
+            'lastProfit',
             'lastHistoryTables',
             'lastTTimeTable',
             'lastTValueTable',

@@ -51,16 +51,16 @@ trait SaleTrait
     }
     public function addExtra($sale_id, $product, $historyP_id, $amount)
     {
-        $extra = $this->getExtra($sale_id, $product->id,$historyP_id);
+        $extra = $this->getExtra($sale_id, $product->id, $historyP_id);
         if (is_null($extra)) {
             $extra = Extra::create([
                 'sale_id' => $sale_id,
                 'name' => $product->name,
                 'product_id' => $product->id,
-                'history_p'=>$historyP_id,
+                'history_p' => $historyP_id,
                 'amount' => $amount
             ]);
-        }else{
+        } else {
             $extra->amount += $amount;
             $extra->save();
         }
@@ -100,9 +100,11 @@ trait SaleTrait
         $day->save();
     }
 
-    public function getExtrasSale($sale_id){
-        return DB::table('extras')->select('extras.*', 'products.name', 'products.saleprice')
-        ->leftJoin('products', 'extras.product_id', '=', 'products.id')
-        ->where('sale_id', $sale_id)->get();
+    public function getExtrasSale($sale_id)
+    {
+        return DB::table('extras')->select('extras.*', 'products.name', 'products.saleprice', 'history_products.buyprice')
+            ->leftJoin('products', 'extras.product_id', '=', 'products.id')
+            ->leftJoin('history_products', 'extras.history_p', '=', 'history_products.id')
+            ->where('sale_id', $sale_id)->get();
     }
 }

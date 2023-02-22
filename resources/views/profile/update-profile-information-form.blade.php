@@ -35,7 +35,7 @@
                             </span>
                         </div>
 
-                        <x-jet-secondary-button class="my-3" type="button" x-on:click.prevent="$refs.photo.click()">
+                       {{--  <x-jet-secondary-button class="my-3" type="button" x-on:click.prevent="$refs.photo.click()">
                             Seleccione una nuevo foto de perfil
                         </x-jet-secondary-button>
 
@@ -43,7 +43,7 @@
                             <x-jet-danger-button type="button" class="mt-2" wire:click="deleteProfilePhoto">
                                 Eliminar foto
                             </x-jet-danger-button>
-                        @endif
+                        @endif --}}
                     </div>
                 </div>
 
