@@ -21,7 +21,7 @@
                     </x-jet-button>
                 </div>
 
-                <ul class="max-w-md space-y-1 text-gray-500 list-inside mt-3 mx-4 pl-0">
+                <ul class="space-y-1 text-gray-500 list-inside mt-3 mx-4 pl-0">
                     <li class="flex items-center">
                         <i class="fas fa-check-circle mr-2 text-green-400"></i>
                         <p class="mb-0">Iniciar dia: Apartir del momento en que se inicia el dia se empezara a
@@ -41,11 +41,11 @@
                     </li>
                     <li class="flex items-center">
                         <i class="fas fa-check-circle mr-2 text-green-400"></i>
-                        <p class="mb-0">Al finalizar el dia se podra ver el total recaudado o yendo directamente al dashboard.
+                        <p class="mb-0">Al finalizar el dia se podra ver el total recaudado o yendo directamente al
+                            dashboard.
                         </p>
                     </li>
                 </ul>
-                
             @else
                 <div class="flex justify-center items-center">
                     <x-jet-danger-button type="button" class="finish_day" onclick="finishDay()">Finalizar el dia
@@ -223,22 +223,27 @@
                 $.get(`{{ route('sale.dataGeneral') }}?type=${2}`, function(r) {
                     let general = r.general
                     $.each(general, function(i, value) {
-                        let general_id = value.id
-                        initSelectProduct("#selectProduct_" + general_id,
-                            "{{ route('sale.products') }}")
-                        initFormAddProduct(general_id, 2)
 
-                        $.each(value.extras, function(i, value) {
-                            $("#amountExtra_" + value.id).on('input', function() {
-                                console.log($(this).val());
+                        let general_id = value.id;
+
+                        initSelectProduct("#selectProduct_" + general_id,
+                            "{{ route('sale.products') }}");
+                        initFormAddProduct(general_id, 2);
+
+                        $.each(value.ArrayExtras, function(i, value) {
+                            console.log(value.product_id);
+                            $("#amountExtra_" + value.product_id).on('input', function() {
                                 if ($(this).val() < 0) {
                                     $(this).val(0)
                                 } else {
+                                    console.log("aaa");
                                     $(this).val($(this).val())
                                 }
-                                somechange(general_id, value.id, $(this).val())
+                                somechange(general_id, value.product_id, $(this)
+                                    .val());
                             });
                         });
+
                     });
                 })
             }).fail(function() {

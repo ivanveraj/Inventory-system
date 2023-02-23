@@ -4,7 +4,7 @@
 @section('title_page', 'Gestion de perfil de usuario')
 
 @section('breadcrumb')
-    <li class="brea">Gestion de perfil de usuario</li>
+    <li class="breadcrumb-item">Gestion de perfil de usuario</li>
 @endsection
 
 @push('css')

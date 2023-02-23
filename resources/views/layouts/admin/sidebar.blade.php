@@ -63,7 +63,7 @@
                             <a href="{{ route('sales.detail_sale') }}" class="waves-effect">
                                 <span>Ventas</span></a>
                         </li>
-                        @if (in_array($user->rol_id, [1, 2]))
+                        @if (in_array($LogUser->rol_id, [1, 2]))
                             <li>
                                 <a href="{{ route('history.inventoryDiscount') }}"
                                     class="waves-effect"><span>Inventario</span></a>

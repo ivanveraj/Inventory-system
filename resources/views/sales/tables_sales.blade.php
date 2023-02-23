@@ -128,6 +128,7 @@
                     @endif
                 </td>
                 <td class="p-2 align-middle bg-transparent border-b">
+                  
                     @if ($sale->total != 0)
                         <button type="submit" data-toggle="tooltip" data-placement="top" title="Cobrar"
                             onclick="viewDetail({{ $sale->id }},1)" id="totalExtra_{{ $sale->id }}"

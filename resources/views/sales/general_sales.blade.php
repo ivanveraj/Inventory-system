@@ -10,11 +10,11 @@
         <tbody class="text-center">
             @foreach ($general as $sale)
                 @php
-                    $extras = $sale->Extras;
-                    $total = 0;
-                    foreach ($extras as $e) {
+                    /*   $extras = $sale->Extras; */
+                    /*  $total = 0; */
+                    /*   foreach ($extras as $e) {
                         $total += $e->total;
-                    }
+                    } */
                 @endphp
                 <tr>
                     <td>
@@ -29,28 +29,25 @@
                                 method="POST">
                                 @csrf
                                 <input type="hidden" value="{{ $sale->id }}" name="sale_id">
-                                <div class="flex justify-center items-center {{ $extras->isEmpty() ? '' : 'mb-3' }}">
-                                    <div
-                                        class="flex justify-center items-center {{ $extras->isEmpty() ? '' : 'mb-3' }}">
-                                        <div style="width: 120px">
-                                            <x-jet-input type="number" name="amount" class="w-full"
-                                                placeholder="####">
-                                            </x-jet-input>
-                                        </div>
-                                        <div class="flex items-center ml-3 w-full">
-                                            <select id="selectProduct_{{ $sale->id }}" name="product_id"
-                                                class="form-control"></select>
+                                <div
+                                    class="flex justify-center items-center {{ empty($sale->ArrayExtras) ? '' : 'mb-3' }}">
 
-                                            <button type="submit" class="btn bg-primar text-white btn-sm ml-2"
-                                                data-toggle="tooltip" data-placement="top" title="Agregar producto">
-                                                <i class="fa fa-plus"></i>
-                                            </button>
-                                        </div>
+                                    <x-jet-input type="number" name="amount" style="max-width: 5rem !important"
+                                        placeholder="####">
+                                    </x-jet-input>
+
+                                    <div class="flex items-center ml-3 w-full">
+                                        <select id="selectProduct_{{ $sale->id }}" name="product_id"
+                                            class="form-control jquerySelect2-tag"></select>
+                                        <button type="submit" class="btn bg-primary text-white btn-sm ml-2"
+                                            data-toggle="tooltip" data-placement="top" title="Agregar producto">
+                                            <i class="fa fa-plus"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </form>
                         </div>
-                        @if (!$extras->isEmpty())
+                        @if (!empty($sale->ArrayExtras))
                             <table class="w-100">
                                 <thead class="vertical-align-middle">
                                     <tr class="text-center">
@@ -61,24 +58,21 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($extras as $extra)
+                                    @foreach ($sale->ArrayExtras as $extra)
                                         <tr>
-                                            <td class="break-words text-xs">{{ $extra->Product->name }}</td>
-
+                                            <td class="break-words text-xs">{{ $extra['name'] }}</td>
                                             <td>
-                                                <x-jet-input type="number" id="amountExtra_{{ $extra->id }}"
-                                                    value="{{ $extra->amount }}" style="width: 80px">
+                                                <x-jet-input type="number" id="amountExtra_{{ $extra['product_id'] }}"
+                                                    value="{{ $extra['amount'] }}" style="width: 80px">
                                                 </x-jet-input>
                                             </td>
-
-                                            <td id="priceExtra_{{ $extra->id }}" data-price="{{ $extra->price }}">
-                                                ${{ formatMoney($extra->productPrice * $extra->amount) }}
-                                            </td>
-
+                                            <td id="priceExtra_{{ $extra['product_id'] }}"
+                                                data-price="{{ $extra['price'] }}">
+                                                ${{ formatMoney($extra['price']) }}</td>
                                             <td>
                                                 <button type="button" class="btn btn-sm bg-danger text-white"
-                                                    onclick="deleteExtra({{ $extra->id }},2)" data-toggle="tooltip"
-                                                    data-placement="top" title="Eliminar">
+                                                    onclick="deleteExtra({{ $extra['product_id'] }},{{ $sale->id }},1)"
+                                                    data-toggle="tooltip" data-placement="top" title="Eliminar">
                                                     <i class="fas fa-backspace"></i>
                                                 </button>
                                             </td>
@@ -89,10 +83,11 @@
                         @endif
                     </td>
                     <td class="p-2">
+                        @dump($sale->total)
                         <button type="submit" data-toggle="tooltip" data-placement="top" title="Cobrar"
                             onclick="viewDetail({{ $sale->id }},2)" id="totalExtra_{{ $sale->id }}"
                             class="btn bg-primary text-white font-extrabold">
-                            {{ $total }}
+                            {{ $sale->total }}
                         </button>
                     </td>
                 </tr>

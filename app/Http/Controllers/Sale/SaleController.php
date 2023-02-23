@@ -82,6 +82,23 @@ class SaleController extends Controller
     public function generalSale()
     {
         $general = $this->getSalesType(2);
+        foreach ($general as $sale) {
+            $arrayE = [];
+            $total = 0;
+            $extras = DB::table('extras')->select('extras.*', 'products.name', 'products.saleprice')
+                ->leftJoin('products', 'extras.product_id', '=', 'products.id')
+                ->where('sale_id', $sale->id)->get();
+            foreach ($extras as $extra) {
+                $total += $extra->saleprice * $extra->amount;
+                if (isset($arrayE[$extra->product_id])) {
+                    $arrayE[$extra->product_id]['amount'] += $extra->amount;
+                } else {
+                    $arrayE[$extra->product_id] = ['product_id' => $extra->product_id, 'extra_id' => $extra->id, 'name' => $extra->name, 'amount' => $extra->amount, 'price' => $extra->saleprice];
+                }
+            }
+            $sale->ArrayExtras = $arrayE;
+            $sale->total = $total;
+        }
         return view('sales.general_sales', compact('general'));
     }
 
