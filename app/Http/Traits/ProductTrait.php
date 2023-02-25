@@ -5,6 +5,7 @@ namespace App\Http\Traits;
 use App\Models\HistoryProduct;
 use App\Models\InventoryDiscount;
 use App\Models\Product;
+use Illuminate\Support\Facades\DB;
 
 trait ProductTrait
 {
@@ -17,14 +18,15 @@ trait ProductTrait
     {
         return Product::where('state', 1)->get();
     }
-    public function getProductsStock()
+  
+
+    public function availableProducts()
     {
-        return Product::where('state', 1)->whereNotIn('id', $this->notAvailable())->get();
+        $array['products'] = HistoryProduct::select("product_id", DB::raw("sum(amount)"))->where('amount', '>', 0)->groupBy('product_id')->pluck('sum', 'product_id')->toArray();
+        $array['avaliable']=array_keys($array['products']);
+        return $array;
     }
 
-    public function notAvailable(){
-        return HistoryProduct::where('amount', '<=', 0)->pluck('product_id')->toArray();
-    }
 
     public function createProduct($code, $name, $buyprice, $percent)
     {

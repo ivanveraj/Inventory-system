@@ -144,16 +144,18 @@ class SaleController extends Controller
 
     public function products(Request $rq)
     {
+        $avaliable = $this->availableProducts();
         if (isset($rq->searchTerm)) {
             $searchTerm = strtoupper($rq->searchTerm);
-            $products = Product::where('state', 1)->whereNotIn('id', $this->notAvailable())->where('code', 'LIKE', "%" . $searchTerm . "%")->get();
+            $products = Product::where('state', 1)->whereIn('id', $avaliable['avaliable'])->where('code', 'LIKE', "%" . $searchTerm . "%")->get();
         } else {
-            $products = $this->getProductsStock();
+            $products = Product::where('state', 1)->whereIn('id', $avaliable['avaliable'])->get();
         }
+
         $array = [];
         foreach ($products as $product) {
-            $amount = $this->getAmountProduct($product->id);
-            $array[] = ['id' => $product->id, 'text' => $product->name . " (" . $product->code . ") [$amount]"];
+            $amount = isset($avaliable['products'][$product->id]) ? $avaliable['products'][$product->id] : 0;
+            $array[] = ['id' => $product->id, 'text' => $product->name . " (" . $product->code . ") [" . $amount . "]"];
         }
         return response()->json($array);
     }
@@ -385,8 +387,8 @@ class SaleController extends Controller
         $historySale = $this->createHistorySale($client, 0, $priceTime, $time, Auth::user()->id);
         foreach ($this->getExtrasSale($sale->id) as $ext) {
             $this->createHistoryProductSale($historySale->id, $ext->product_id, $ext->amount, $ext->saleprice);
-            $total +=$ext->saleprice * $ext->amount;
-            $profit+=($ext->saleprice-$ext->buyprice)* $ext->amount;
+            $total += $ext->saleprice * $ext->amount;
+            $profit += ($ext->saleprice - $ext->buyprice) * $ext->amount;
         }
 
         $day->total += $total;
