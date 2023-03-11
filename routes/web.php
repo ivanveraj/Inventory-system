@@ -96,6 +96,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('tablesSales', [SaleController::class, 'tablesSales'])->name('sales.tablesSales');
         Route::get('histoyDetail/{history_id?}', [SaleController::class, 'histoyDetail'])->name('sale.histoyDetail');
 
+        Route::get('plusExtra', [SaleController::class, 'plusExtra'])->name('sale.plusExtra');
+        Route::get('minExtra', [SaleController::class, 'minExtra'])->name('sale.minExtra');
+
         Route::get('/', [SaleController::class, 'index'])->name('sales.index');
     });
 

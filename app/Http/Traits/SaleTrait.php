@@ -42,7 +42,12 @@ trait SaleTrait
 
     public function getExtras($sale_id, $product_id)
     {
-        return Extra::where('sale_id', $sale_id)->where('product_id', $product_id)->get();
+        return Extra::where('sale_id', $sale_id)->where('product_id', $product_id)->orderBy('created_at', 'DESC')->get();
+    }
+
+    public function getLastExtra($sale_id, $product_id)
+    {
+        return Extra::where('sale_id', $sale_id)->where('product_id', $product_id)->orderBy('created_at', 'DESC')->first();
     }
 
     public function getExtraById($id)
@@ -106,5 +111,14 @@ trait SaleTrait
             ->leftJoin('products', 'extras.product_id', '=', 'products.id')
             ->leftJoin('history_products', 'extras.history_p', '=', 'history_products.id')
             ->where('sale_id', $sale_id)->get();
+    }
+
+    public function getTotalSale($sale_id)
+    {
+        $total = 0;
+        foreach ($this->getExtrasSale($sale_id) as $extra) {
+            $total += $extra->saleprice * $extra->amount;
+        }
+        return $total;
     }
 }

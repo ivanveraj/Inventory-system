@@ -267,6 +267,66 @@ class SaleController extends Controller
         return AccionCorrecta('', '', 1, $total);
     }
 
+
+    public function plusExtra(Request $rq)
+    {
+        $sale = $this->getSale($rq->sale_id);
+        if (is_null($sale)) {
+            return AccionIncorrecta('', 'No existe ninguna venta asociada a este producto extra');
+        }
+
+        $product = $this->getProduct($rq->product_id);
+        if (is_null($product)) {
+            return AccionIncorrecta('', 'No existe o se encuentra inactivo el producto');
+        }
+
+        if ($this->getAmountProduct($product->id) - 1 < 0) {
+            return AccionIncorrecta('', 'No existe la cantidad solicitada en el inventario');
+        }
+
+        $this->discount($sale->id, $product, 1);
+
+        $extras = $this->getExtras($sale->id, $product->id);
+        return AccionCorrecta('', '', 1, ['total' => $this->getTotalSale($sale->id), 'amount' => $extras->sum('amount')]);
+    }
+
+    public function minExtra(Request $rq)
+    {
+        $sale = $this->getSale($rq->sale_id);
+        if (is_null($sale)) {
+            return AccionIncorrecta('', 'No existe ninguna venta asociada a este producto extra');
+        }
+
+        $product = $this->getProduct($rq->product_id);
+        if (is_null($product)) {
+            return AccionIncorrecta('', 'No existe o se encuentra inactivo el producto');
+        }
+
+        $extra = $this->getLastExtra($sale->id, $product->id);
+        if (is_null($product)) {
+            return AccionIncorrecta('', 'No existe el producto extra, recarge la pagina');
+        }
+
+        $historyP = $this->getHistoryProduct2($extra->history_p);
+        if (is_null($historyP)) {
+            return AccionIncorrecta('', 'No existe historial del producto, recarge la pagina');
+        }
+
+        $historyP->amount++;
+        $historyP->save();
+
+        $extra->amount--;
+        $extra->save();
+
+        if ($extra->amount == 0) {
+            $extra->delete();
+        }
+
+        $extras = $this->getExtras($sale->id, $product->id);
+        
+        return AccionCorrecta('', '', 1, ['total' => $this->getTotalSale($sale->id), 'amount' => $extras->sum('amount')]);
+    }
+
     public function changeNameClient(Request $rq)
     {
         $sale = $this->getSale($rq->sale_id);

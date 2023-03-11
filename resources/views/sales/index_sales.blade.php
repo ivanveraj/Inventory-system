@@ -184,16 +184,12 @@
                         initFormAddProduct(general_id, 1);
 
                         $.each(value.ArrayExtras, function(i, value) {
-                            console.log(value.product_id);
                             $("#amountExtra_" + value.product_id).on('input', function() {
                                 if ($(this).val() < 0) {
-                                    $(this).val(0)
+                                    $(this).val(0);
                                 } else {
-                                    console.log("aaa");
-                                    $(this).val($(this).val())
+                                    $(this).val($(this).val());
                                 }
-                                somechange(general_id, value.product_id, $(this)
-                                    .val());
                             });
                         });
                     });
@@ -239,8 +235,7 @@
                                     console.log("aaa");
                                     $(this).val($(this).val())
                                 }
-                                somechange(general_id, value.product_id, $(this)
-                                    .val());
+
                             });
                         });
 
@@ -251,29 +246,6 @@
             });
         }
 
-        function somechange(sale_id, product_id, amount) {
-            $.ajax({
-                type: "GET",
-                dataType: "json",
-                url: "{{ route('sale.changeAmountExtra') }}",
-                data: {
-                    'amount': amount,
-                    'product_id': product_id,
-                    'sale_id': sale_id
-                },
-                success: function(r) {
-                    console.log(r);
-                    if (r.status === 1) {
-                        $('#totalExtra_' + sale_id).html(r.data);
-                    } else {
-                        addToastr(r.type, r.title, r.message)
-                    }
-                },
-                error: function(r) {
-                    console.log(r);
-                }
-            });
-        }
 
         function startTime(sale_id) {
             $(".startTime_" + sale_id).hide();
@@ -373,6 +345,68 @@
                     console.log(r);
                 }
             });
+        }
+
+        function plusExtra(product_id, sale_id, type) {
+            $('#plus_' + product_id + '_' + sale_id + '_' + type).prop('disabled', true);
+            $.ajax({
+                type: "get",
+                dataType: "json",
+                url: "{{ route('sale.plusExtra') }}",
+                data: {
+                    "_token": "{{ csrf_token() }}",
+                    'product_id': product_id,
+                    'sale_id': sale_id
+                },
+                success: function(r) {
+                    if (r.status === 1) {
+                        $("#amount_" + sale_id + "_" + product_id + "_" + type).html(r.data.amount);
+                        $('#totalExtra_' + sale_id).html(r.data.total);
+                        $('#plus_' + product_id + '_' + sale_id + '_' + type).prop('disabled', false);
+                    } else {
+                        $('#plus_' + product_id + '_' + sale_id + '_' + type).prop('disabled', false);
+                        addToastr(r.type, r.title, r.message);
+                        type == 1 ? reloadTable() : reloadGeneral();
+                    }
+                },
+                error: function(r) {
+                    $('#plus_' + product_id + '_' + sale_id + '_' + type).prop('disabled', false);
+                    type == 1 ? reloadTable() : reloadGeneral();
+                    console.log(r);
+                }
+            });
+            $('[data-toggle="tooltip"], .tooltip').tooltip("hide");
+        }
+
+        function minExtra(product_id, sale_id, type) {
+            $('#min_' + product_id + '_' + sale_id + '_' + type).prop('disabled', true);
+            $.ajax({
+                type: "get",
+                dataType: "json",
+                url: "{{ route('sale.minExtra') }}",
+                data: {
+                    "_token": "{{ csrf_token() }}",
+                    'product_id': product_id,
+                    'sale_id': sale_id
+                },
+                success: function(r) {
+                    if (r.status === 1) {
+                        $("#amount_" + sale_id + "_" + product_id + "_" + type).html(r.data.amount);
+                        $('#totalExtra_' + sale_id).html(r.data.total);
+                        $('#min_' + product_id + '_' + sale_id + '_' + type).prop('disabled', false);
+                    } else {
+                        addToastr(r.type, r.title, r.message);
+                        $('#min_' + product_id + '_' + sale_id + '_' + type).prop('disabled', false);
+                        type == 1 ? reloadTable() : reloadGeneral();
+                    }
+                },
+                error: function(r) {
+                    $('#min_' + product_id + '_' + sale_id + '_' + type).prop('disabled', false);
+                    type == 1 ? reloadTable() : reloadGeneral();
+                    console.log(r);
+                }
+            });
+            $('[data-toggle="tooltip"], .tooltip').tooltip("hide");
         }
 
         function viewDetail(sale_id, type) {
@@ -503,5 +537,29 @@
                 }
             })
         }
+
+        /*  function somechange(sale_id, product_id, amount) {
+                $.ajax({
+                    type: "GET",
+                    dataType: "json",
+                    url: "{{ route('sale.changeAmountExtra') }}",
+                    data: {
+                        'amount': amount,
+                        'product_id': product_id,
+                        'sale_id': sale_id
+                    },
+                    success: function(r) {
+                        console.log(r);
+                        if (r.status === 1) {
+                            $('#totalExtra_' + sale_id).html(r.data);
+                        } else {
+                            addToastr(r.type, r.title, r.message)
+                        }
+                    },
+                    error: function(r) {
+                        console.log(r);
+                    }
+                });
+            } */
     </script>
 @endpush

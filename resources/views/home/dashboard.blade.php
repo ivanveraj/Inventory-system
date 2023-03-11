@@ -117,43 +117,42 @@
                     </div>
                 </div>
                 <div class="flex justify-center">
-                    <div class="w-full px-3 mb-6 lg:mb-0 lg:flex-none">
-                        <div
-                            class="flex bg-warning text-black h-full flex-col break-words rounded-2xl border-0 border-solid bg-clip-border p-4">
-                            <div class="flex flex-col flex-auto h-full">
-                                <p class="text-center font-bold text-xl mb-1 italic">
-                                    Recaudado en las mesas
-                                </p>
-                                <table class="w-full text-black text-center mb-3">
-                                    <thead class="bg-info">
-                                        <tr class="px-6 py-3 font-bold uppercase align-middle whitespace-nowrap text-black">
-                                            <th>Mesa</th>
-                                            <th>Tiempo</th>
-                                            <th>Recaudado</th>
+                    <div class="flex bg-secondary flex-col break-words rounded-2xl p-4">
+                        <div class="flex flex-col flex-auto h-full text-white">
+                            <p class="text-center font-bold text-xl mb-1 italic">
+                            <p class="text-center font-bold text-xl mb-1 italic">
+                                Recaudado en las mesas
+                            </p>
+                            <table class="text-white text-center mb-3">
+                                <thead style="background-color: grey">
+                                    <tr class="px-6 py-3 font-bold text-white">
+                                        <th>Mesa</th>
+                                        <th>Tiempo</th>
+                                        <th>Recaudado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($lastHistoryTables as $historyT)
+                                        @php
+                                            $table = $historyT->Table;
+                                        @endphp
+                                        <tr>
+                                            <td>{{ is_null($table) ? 'Mesa sin nombre' : $table->name }}</td>
+                                            <td>{{ $historyT->time }}</td>
+                                            <td>${{ formatMoney($historyT->total) }}</td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($lastHistoryTables as $historyT)
-                                            @php
-                                                $table = $historyT->Table;
-                                            @endphp
-                                            <tr>
-                                                <td>{{ is_null($table) ? 'Mesa sin nombre' : $table->name }}</td>
-                                                <td>{{ $historyT->time }}</td>
-                                                <td>${{ formatMoney($historyT->total) }}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                                <div class="alert alert-danger mb-0" role="alert">
-                                    <p class="text-center text-black font-bold text-xl mb-0 italic">
-                                        Total tiempo: {{ $lastTTimeTable }} minutos</p>
-                                </div>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                            <div class="alert alert-danger mb-0" role="alert">
+                                <p class="text-center text-black font-bold text-xl mb-0 italic">
+                                    Total tiempo: {{ $lastTTimeTable }} minutos</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
         </div>
     @endif
 
@@ -223,9 +222,6 @@
 
             });
         }
-
-
-
 
         function initChart() {
             var options = {
