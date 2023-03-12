@@ -287,7 +287,7 @@ class SaleController extends Controller
         $this->discount($sale->id, $product, 1);
 
         $extras = $this->getExtras($sale->id, $product->id);
-        return AccionCorrecta('', '', 1, ['total' => $this->getTotalSale($sale->id), 'amount' => $extras->sum('amount')]);
+        return AccionCorrecta('', '', 1, ['total' => $this->getTotalSale($sale), 'amount' => $extras->sum('amount')]);
     }
 
     public function minExtra(Request $rq)
@@ -323,8 +323,8 @@ class SaleController extends Controller
         }
 
         $extras = $this->getExtras($sale->id, $product->id);
-        
-        return AccionCorrecta('', '', 1, ['total' => $this->getTotalSale($sale->id), 'amount' => $extras->sum('amount')]);
+
+        return AccionCorrecta('', '', 1, ['total' => $this->getTotalSale($sale), 'amount' => $extras->sum('amount')]);
     }
 
     public function changeNameClient(Request $rq)

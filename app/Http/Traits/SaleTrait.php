@@ -113,10 +113,15 @@ trait SaleTrait
             ->where('sale_id', $sale_id)->get();
     }
 
-    public function getTotalSale($sale_id)
+    public function getTotalSale($sale)
     {
         $total = 0;
-        foreach ($this->getExtrasSale($sale_id) as $extra) {
+        if ($sale->type == 1 && !is_null($sale->start_time)) {
+            $time = DateDifference(date('Y-m-d H:i:s'), $sale->start_time);
+            $total = ($time < $this->getSetting('TiempoMinimo')) ? $this->getSetting('PrecioMinimo') : round(($this->getSetting('PrecioXHora') / 60) * $time);
+        }
+
+        foreach ($this->getExtrasSale($sale->id) as $extra) {
             $total += $extra->saleprice * $extra->amount;
         }
         return $total;
