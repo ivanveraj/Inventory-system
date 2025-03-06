@@ -9,6 +9,7 @@ use App\Models\Table;
 
 trait SaleTrait
 {
+    use SettingTrait;
     public function getSale($id)
     {
         return SaleTable::where('id', $id)->first();
@@ -96,5 +97,56 @@ trait SaleTrait
         $day = Day::where('id', $day)->first();
         $day->total += $total;
         $day->save();
+    }
+
+    public function calculateTotal($sale, $minPrice = null, $minTime = null, $priceXHora = null)
+    {
+        $extras = $sale->extras;
+        $total = 0;
+
+        if (!is_null($sale->start_time)) {
+            $time = DateDifference(now(), $sale->start_time);
+            $total = ($time < $minTime) ? $minPrice : round(($priceXHora / 60) * $time);
+        }
+
+        // Sumar el total de los extras
+        $total += $extras->sum('total');
+        return '$' . number_format($total, 0);
+    }
+
+    public function endSale($sale)
+    {
+        $total = 0;
+        if (!is_null($sale->start_time)) {
+            $TiempoMinimo = $this->getSetting('TiempoMinimo');
+            $time = DateDifference(date('Y-m-d H:i:s'), $sale->start_time);
+            if ($time < $TiempoMinimo) {
+                $total = $this->getSetting('PrecioMinimo');
+            } else {
+                $PrecioXHora = $this->getSetting('PrecioXHora');
+                $total = round(($PrecioXHora / 60) * $time);
+            }
+        }
+
+        if ($sale->type == 2) {
+            $total = 0;
+        }
+
+        $extras = $sale->Extras;
+        foreach ($extras as $ext) {
+            $total += $ext->total;
+        }
+
+        $day = getDay();
+        $day->total += $total;
+        $day->save();
+
+        if ($sale->type == 1) {
+            $this->deleteSaleAllTable($sale);
+        } else {
+            $this->deleteSaleAll($sale);
+        }
+
+        $this->customNotification('success', 'Éxito', 'La venta se finalizó correctamente.');
     }
 }

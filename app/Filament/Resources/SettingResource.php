@@ -1,0 +1,60 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\GlobalSettingsResource\Pages\ManageSettings;
+use App\Filament\Resources\SettingsResource\Pages;
+use App\Models\Setting;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+
+class SettingResource extends Resource
+{
+    protected static ?string $model = Setting::class;
+    protected static ?string $navigationIcon = 'heroicon-s-cog';
+    protected static ?string $label = 'Configuraciones';
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                TextInput::make('group')
+                    ->required()
+                    ->maxLength(255)
+                    ->label('Group'),
+                TextInput::make('key')
+                    ->required()
+                    ->maxLength(255)
+                    ->readOnly()
+                    ->label('Key'),
+                TextInput::make('value')
+                    ->required()
+                    ->label('Value'),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('group')->sortable()->searchable()->label('Group'),
+                TextColumn::make('key')->sortable()->searchable()->label('Key'),
+                TextColumn::make('value')->sortable()->label('Value'),
+                TextColumn::make('updated_at')->dateTime()->label('Last Updated')
+            ])
+            ->actions([
+                EditAction::make('edit')->hiddenLabel()
+            ]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ManageSettings::route('/'),
+        ];
+    }
+}

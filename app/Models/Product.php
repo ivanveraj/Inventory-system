@@ -8,12 +8,23 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     use HasFactory;
+    
     protected $fillable = [
+        'type',
         'name',
-        'code',
-        'amount',
+        'description',
+        'category',
+        'sku',
+        'barcode',
+        'keywords',
         'buyprice',
         'saleprice',
-        'state'
+        'amount',
+        'discount',
+        'discount_to',
+        'iva',
+        'is_activated',
+        'has_stock_alert',
+        'min_stock_alert',
     ];
 }

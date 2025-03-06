@@ -18,11 +18,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->smallInteger('state');
-            $table->unsignedBigInteger('rol_id');
-            $table->foreign('rol_id')->references('id')->on('rols');
             $table->string('password');
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('profile_photo_path', 2048)->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

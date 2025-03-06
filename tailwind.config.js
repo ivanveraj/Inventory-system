@@ -1,22 +1,25 @@
-import defaultTheme from 'tailwindcss/defaultTheme';
+import preset from './vendor/filament/support/tailwind.config.preset'
 
-/** @type {import('tailwindcss').Config} */
 export default {
-    content: [
-        './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
-        './storage/framework/views/*.php',
-        './resources/**/*.blade.php',
-        './resources/**/*.js',
-        './resources/**/*.vue',
-        './vendor/awcodes/filament-table-repeater/resources/**/*.blade.php',
-
-    ],
+    darkMode: 'class',
+    presets: [preset],
     theme: {
-        extend: {
-            fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
-            },
-        },
+        colors: {
+            transparent: 'transparent',
+            black: "#000",
+            success: "#00D619",
+            danger: "#FCC2C2",
+            warning: "#FEFEB4",
+            info: "#CCF0F7",
+            primary: '#00b4d8',
+            secondary: '#7e106e',
+            footer: '#2A3342'
+        }
     },
-    plugins: [],
-};
+    content: [
+        './app/**/*.php',
+        './resources/**/*.blade.php',
+        './vendor/filament/**/*.blade.php',
+        './vendor/archilex/filament-filter-sets/**/*.php',
+    ],
+}

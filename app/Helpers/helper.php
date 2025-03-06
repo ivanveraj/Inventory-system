@@ -63,7 +63,7 @@ function completeNameUser($user)
 function formatMoney($num)
 {
     $num = doubleval($num);
-    return number_format($num);
+    return '$' . number_format($num, 0);
 }
 
 function DateDifference($date1, $date2)

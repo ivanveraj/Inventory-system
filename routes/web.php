@@ -1,13 +1,10 @@
 <?php
 
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\Product\ProductController;
-use App\Http\Controllers\Rol\RolController;
-use App\Http\Controllers\Sale\SaleController;
-use App\Http\Controllers\Settings\SettingsController;
-use App\Http\Controllers\Table\TableController;
-use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return view('welcome');
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -24,7 +21,7 @@ use Illuminate\Support\Facades\Route;
     return view('layouts.admin.base');
 }); */
 
-Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+/* Route::middleware(['auth:sanctum', 'verified'])->group(function () { */
 
     /* Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboard');
     Route::get('getDataSales', [DashboardController::class, 'getDataSales'])->name('getDataSales');
@@ -98,4 +95,4 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/', [SettingsController::class, 'index'])->name('settings.index')->middleware('ProtectRoutes:1');
         Route::post('general', [SettingsController::class, 'general'])->name('settings.general')->middleware('ProtectRoutes:1');
     }); */
-});
+/* }); */

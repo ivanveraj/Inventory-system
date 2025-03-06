@@ -1,0 +1,1 @@
+@livewire('extra-table-column', ['saleId' => $getRecord()->id], key('extra-table-' . $getRecord()->id))

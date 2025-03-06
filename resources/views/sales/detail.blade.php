@@ -45,9 +45,9 @@
             </div>
 
         </div>
-        <div class="modal-footer">
+      {{--   <div class="modal-footer">
             <x-jet-secondary-button type="button" data-bs-dismiss="modal">Cerrar</x-jet-secondary-button>
             <x-jet-button>Pagado</x-jet-button>
-        </div>
+        </div> --}}
     </form>
 </x-modalB>

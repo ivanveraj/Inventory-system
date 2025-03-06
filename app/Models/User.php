@@ -5,20 +5,16 @@ namespace App\Models;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser
 {
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var string[]
-     */
+    use Notifiable, HasRoles;
     protected $fillable = [
         'name',
         'email',
         'state',
-        'rol_id',
         'password',
     ];
 
@@ -30,8 +26,6 @@ class User extends Authenticatable implements FilamentUser
     protected $hidden = [
         'password',
         'remember_token',
-        'two_factor_recovery_codes',
-        'two_factor_secret',
     ];
 
     /**
@@ -39,9 +33,13 @@ class User extends Authenticatable implements FilamentUser
      *
      * @var array
      */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
 
     /**
      * The accessors to append to the model's array form.
@@ -52,10 +50,10 @@ class User extends Authenticatable implements FilamentUser
         'profile_photo_url',
     ];
 
-    public function Rol()
+  /*   public function Rol()
     {
         return $this->belongsTo(Rol::class, 'rol_id');
-    }
+    } */
 
     public function canAccessPanel(Panel $panel): bool
     {

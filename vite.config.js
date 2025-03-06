@@ -23,6 +23,8 @@ export default defineConfig({
                 'app/Providers/Filament/**',
                 'app/Tables/Columns/**',
                 'resources/Views/**',
+                'resources/Views/Livewire/**',
+                'resources/views/Livewire/**',
             ],
         }),
     ],
