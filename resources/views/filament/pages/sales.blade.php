@@ -1,5 +1,5 @@
 <x-filament-panels::page>
-    {{-- {{ $this->table }} --}}
+    {{ $this->table }}
 
     @if ($this->day)
         @livewire('general-sales-table')

@@ -1,23 +1,23 @@
-<div class="w-full p-2">
+<div class="w-full">
     @if (!empty($sale))
-        <div class="flex justify-end mb-4">
+        <div class="flex justify-end" style="padding-top:.5rem">
             {{ $this->addExtraAction }}
         </div>
-        @if (!empty($extras))
-            <table class="w-full align-top border-gray-700 text-gray-300 text-sm">
+        @if (!empty($extras) && $extras->isNotEmpty())
+            <table class="w-full align-top border-gray-700 text-gray-300 text-sm my-4">
                 <thead class="text-left bg-gray-800">
-                    <tr class="px-4 py-2 font-semibold uppercase border-y border-gray-700 text-sm text-white">
-                        <th class="p-2">Producto</th>
-                        <th class="p-2 text-center">Cantidad</th>
-                        <th class="p-2 text-center">Precio</th>
-                        <th class="p-2"></th>
+                    <tr class="px-4 py-2 font-semibold uppercase border-y border-gray-700 text-xs text-white">
+                        <th class="p-1">Producto</th>
+                        <th class="p-1 text-center">Cantidad</th>
+                        <th class="p-1 text-center">Precio</th>
+                        <th class="p-1"></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($extras as $extra)
                         <tr class="border-b border-gray-700 hover:bg-gray-800 transition">
-                            <td class="p-2 break-words">{{ $extra->Product->name }}</td>
-                            <td class="p-2 flex justify-center">
+                            <td class="p-1 break-words">{{ $extra->Product->name }}</td>
+                            <td class="p-1 flex justify-center">
                                 <x-filament::input.wrapper class="input-wrapper-fit">
                                     <x-filament::input type="number" min="1"
                                         oninput="this.value = Math.max(1, this.value)"
@@ -25,11 +25,11 @@
                                         value="{{ $extra->amount }}" class="w-fit max-w-32" />
                                 </x-filament::input.wrapper>
                             </td>
-                            <td class="p-2 text-center" id="priceExtra_{{ $extra->id }}"
+                            <td class="p-1 text-center" id="priceExtra_{{ $extra->id }}"
                                 data-price="{{ $extra->price }}">
-                                ${{ $extra->price }}
+                                {{ formatMoney($extra->price) }}
                             </td>
-                            <td class="p-2 flex justify-center">
+                            <td class="p-1 text-center">
                                 {{ ($this->deleteExtraAction)(['extraId' => $extra->id]) }}
                             </td>
                         </tr>

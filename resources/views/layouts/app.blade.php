@@ -9,7 +9,7 @@
     <title>{{ config('app.name', 'Laravel') }}</title>
 
     <!-- Styles -->
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    {{-- link rel="stylesheet" href="{{ asset('css/app.css') }}"> --}}
 
 
     @vite(['resources/css/app.css', 'resources/sass/app.scss', 'resources/js/app.js'])

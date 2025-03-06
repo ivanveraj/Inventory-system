@@ -29,9 +29,10 @@ class ExtraTableColumn extends Component implements HasForms, HasActions
     public function addExtraAction()
     {
         return Action::make('addExtra')
-            ->label('Producto')
+            ->hiddenLabel()
             ->icon('heroicon-o-plus')
             ->color('success')
+            ->outlined()
             ->modalHeading('Agregar producto')
             ->modalSubmitActionLabel('Agregar')
             ->hidden($this->saleId == null)
@@ -83,6 +84,8 @@ class ExtraTableColumn extends Component implements HasForms, HasActions
             ->hiddenLabel()
             ->icon('heroicon-o-trash')
             ->color('danger')
+            ->outlined()
+            ->size('sm')
             ->requiresConfirmation()
             ->action(function ($arguments) {
                 $extra = $this->getExtraById($arguments['extraId']);
@@ -134,7 +137,7 @@ class ExtraTableColumn extends Component implements HasForms, HasActions
             $this->saleId = null;
             $this->sale = null;
             $this->extras = null;
-        }else{
+        } else {
             $this->extras = Extra::where('sale_id', $this->saleId)->get();
         }
     }

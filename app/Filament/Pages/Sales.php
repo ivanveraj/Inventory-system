@@ -86,6 +86,7 @@ class Sales extends Page implements HasTable, HasForms
         return $table
             ->query($this->day ? SaleTable::query()->where('type',1) : SaleTable::query()->whereRaw('1 = 0'))
             ->poll(null)
+            ->paginated(false)
             ->columns([
                 TextColumn::make('table.name')
                     ->label('Mesa')
