@@ -71,7 +71,7 @@ class Sales extends Page implements HasTable, HasForms
 
                     // Finalizar el día
                     $day = getDay();
-                    $day->finish_day = now(); // Usar `now()` en lugar de `date('Y-m-d H:i:s')`
+                    $day->finish_day = now();
                     $day->save();
 
                     // Notificación de éxito
@@ -84,7 +84,7 @@ class Sales extends Page implements HasTable, HasForms
     public function table(Table $table): Table
     {
         return $table
-            ->query($this->day ? SaleTable::query()->where('type',1) : SaleTable::query()->whereRaw('1 = 0'))
+            ->query($this->day ? SaleTable::query()->where('type', 1) : SaleTable::query()->whereRaw('1 = 0'))
             ->poll(null)
             ->paginated(false)
             ->columns([

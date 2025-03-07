@@ -16,6 +16,7 @@ class SaleController extends Controller
     use TableTrait, SaleTrait, ProductTrait, SettingTrait;
     public function finishDay()
     {
+        
         $sales = SaleTable::where('type', 1)->get();
         foreach ($sales as $sale) {
             if (!is_null($sale->start_time)) {
