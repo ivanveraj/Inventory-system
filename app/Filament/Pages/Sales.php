@@ -3,9 +3,11 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Pages\Dashboard;
+use App\Http\Traits\GeneralTrait;
 use App\Http\Traits\NotificationTrait;
 use App\Http\Traits\SaleTrait;
 use App\Http\Traits\SettingTrait;
+use App\Http\Traits\TableTrait;
 use App\Models\SaleTable;
 use App\Tables\Columns\ExtraTableColumn;
 use Carbon\Carbon;
@@ -18,12 +20,13 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 
 class Sales extends Page implements HasTable, HasForms
 {
     use InteractsWithTable, InteractsWithForms;
-    use SaleTrait, NotificationTrait, SettingTrait;
+    use SaleTrait, NotificationTrait, SettingTrait, GeneralTrait, TableTrait;
 
     protected static ?string $navigationIcon = 'heroicon-s-currency-dollar';
     protected static string $view = 'filament.pages.sales';
@@ -158,6 +161,8 @@ class Sales extends Page implements HasTable, HasForms
                     ->modalCancelActionLabel('Cerrar')
                     ->slideOver()
                     ->modalContent(function ($record) {
+                        dd("aca error");
+                        $day = getDay();
                         $total = 0;
                         $priceTime = 0;
                         $time = "";
@@ -174,14 +179,35 @@ class Sales extends Page implements HasTable, HasForms
                             $priceTime = $total;
                         }
 
-                        if ($record->type == 2) {
-                            $total = 0;
+                        if ($record->type == 1) {
+                            $table = $record->Table;
+                            $client = is_null($table) ? 'Mesa X' : $table->name;
+                        } else {
+                            $client = is_null($record->client) ? 'Sin nombre' : $record->client;
                         }
 
-                        $extras = $record->Extras;
-                        foreach ($extras as $ext) {
-                            $total += $ext->total;
+                        $profit = $priceTime;
+
+
+                        foreach ($record->Extras as $extra) {
+                            $total += $extra->total;
+                            $product = $extra->product;
+                            $profit += ($product->saleprice - $product->buyprice) * $extra->amount;
                         }
+
+                        $day->total += $total;
+                        $day->profit += $profit;
+                        $day->save();
+
+                        $this->createHistorySale($client, $total, $priceTime, $time, Auth::id());
+
+                        if ($record->type == 1) {
+                            $this->deleteSaleAllTable($record);
+                            $this->addTimeHistoryTable($day->id, $record->table_id, $time);
+                        } else {
+                            $this->deleteSaleAll($record);
+                        }
+
                         return view('filament.pages.sales.detail', ['sale' => $record, 'extras' => $record->Extras, 'time' => $time, 'total' => $total, 'priceTime' => $priceTime]);
                     })
                     ->modalSubmitActionLabel('Pagado')

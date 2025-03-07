@@ -6,7 +6,7 @@
         @if (!empty($extras) && $extras->isNotEmpty())
             <table class="w-full align-top border-gray-700 text-gray-300 text-sm my-4">
                 <thead class="text-left bg-gray-800">
-                    <tr class="px-4 py-2 font-semibold uppercase border-y border-gray-700 text-xs text-white">
+                    <tr class="px-4 py-2 font-semibold uppercase border-y border-gray-700 text-sm text-white">
                         <th class="p-1">Producto</th>
                         <th class="p-1 text-center">Cantidad</th>
                         <th class="p-1 text-center">Precio</th>

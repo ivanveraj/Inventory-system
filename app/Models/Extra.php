@@ -11,18 +11,15 @@ class Extra extends Model
     protected $fillable = [
         'sale_id',
         'name',
+        'price',
         'product_id',
-        'history_p',
-        'amount'
+        'amount',
+        'total'
     ];
-    public function Product()
+
+    public function product()
     {
         return $this->belongsTo(Product::class, 'product_id');
-    }
-
-    public function HistoryProduct()
-    {
-        return $this->belongsTo(Product::class, 'history_p');
     }
 
     public function SaleTable()

@@ -14,16 +14,22 @@ trait ProductTrait
     {
         return Product::where('id', $id)->first();
     }
+
+    public function getProductActive($id)
+    {
+        return Product::where('id', $id)->where('is_activated', 1)->first();
+    }
+
     public function getProducts()
     {
-        return Product::where('state', 1)->get();
+        return Product::where('is_activated', 1)->get();
     }
-  
+
 
     public function availableProducts()
     {
         $array['products'] = HistoryProduct::select("product_id", DB::raw("sum(amount)"))->where('amount', '>', 0)->groupBy('product_id')->pluck('sum', 'product_id')->toArray();
-        $array['avaliable']=array_keys($array['products']);
+        $array['avaliable'] = array_keys($array['products']);
         return $array;
     }
 
@@ -65,36 +71,16 @@ trait ProductTrait
         ]);
     }
 
-    public function discount($sale_id, $product, $amount)
+    public function discount($product, $amount)
     {
-        $auxAmount = $amount;
-        $historyProducts = $this->getHistoryProducts($product->id, 'DESC');
-        foreach ($historyProducts as $historyP) {
-            if ($historyP->amount >= $auxAmount) {
-                $this->addExtra($sale_id, $product, $historyP->id, $auxAmount);
-
-                $historyP->amount -= $auxAmount;
-                $historyP->save();
-                break;
-            } else {
-                $auxAmount -= $historyP->amount;
-                $this->addExtra($sale_id, $product, $historyP->id, $historyP->amount);
-                $historyP->amount = 0;
-                $historyP->save();
-            }
-        }
+        $product->amount -= $amount;
+        $product->save();
     }
 
-    public function addAmount($extra, $product, $amount)
+    public function addAmount($product, $amount)
     {
-        $auxAmount = $amount;
-        $historyProducts = $this->getHistoryProducts($product->id, 'ASC', 2);
-        foreach ($historyProducts as $historyP) {
-            if ($extra->history_p == $historyP->id) {
-                $historyP->amount = $amount;
-                $historyP->save();
-            }
-        }
+       $product->amount += $amount;
+       $product->save();
     }
 
     public function addInventoryDiscount($product_id, $amount, $description, $user_id)

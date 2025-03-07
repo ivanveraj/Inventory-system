@@ -35,9 +35,9 @@ trait SaleTrait
             'client' => $client
         ]);
     }
-    public function getExtra($sale_id, $product_id, $historyP_id)
+    public function getExtra($sale_id, $product_id)
     {
-        return Extra::where('sale_id', $sale_id)->where('product_id', $product_id)->where('history_p', $historyP_id)->first();
+        return Extra::where('sale_id', $sale_id)->where('product_id', $product_id)->first();
     }
 
     public function getExtras($sale_id, $product_id)
@@ -54,19 +54,21 @@ trait SaleTrait
     {
         return Extra::where('id', $id)->first();
     }
-    public function addExtra($sale_id, $product, $historyP_id, $amount)
+    public function addExtra($sale_id, $product, $amount)
     {
-        $extra = $this->getExtra($sale_id, $product->id, $historyP_id);
+        $extra = $this->getExtra($sale_id, $product->id);
         if (is_null($extra)) {
-            $extra = Extra::create([
+            Extra::create([
                 'sale_id' => $sale_id,
-                'name' => $product->name,
                 'product_id' => $product->id,
-                'history_p' => $historyP_id,
-                'amount' => $amount
+                'name' => $product->name,
+                'price' => $product->saleprice,
+                'amount' => $amount,
+                'total' => $product->saleprice * $amount
             ]);
         } else {
             $extra->amount += $amount;
+            $extra->total = $extra->amount * $extra->price;
             $extra->save();
         }
     }
@@ -125,5 +127,56 @@ trait SaleTrait
             $total += $extra->saleprice * $extra->amount;
         }
         return $total;
+    }
+
+    public function calculateTotal($sale, $minPrice = null, $minTime = null, $priceXHora = null)
+    {
+        $extras = $sale->extras;
+        $total = 0;
+
+        if (!is_null($sale->start_time)) {
+            $time = DateDifference(now(), $sale->start_time);
+            $total = ($time < $minTime) ? $minPrice : round(($priceXHora / 60) * $time);
+        }
+
+        // Sumar el total de los extras
+        $total += $extras->sum('total');
+        return '$' . number_format($total, 0);
+    }
+
+    public function endSale($sale)
+    {
+        $total = 0;
+        if (!is_null($sale->start_time)) {
+            $TiempoMinimo = $this->getSetting('TiempoMinimo');
+            $time = DateDifference(date('Y-m-d H:i:s'), $sale->start_time);
+            if ($time < $TiempoMinimo) {
+                $total = $this->getSetting('PrecioMinimo');
+            } else {
+                $PrecioXHora = $this->getSetting('PrecioXHora');
+                $total = round(($PrecioXHora / 60) * $time);
+            }
+        }
+
+        if ($sale->type == 2) {
+            $total = 0;
+        }
+
+        $extras = $sale->Extras;
+        foreach ($extras as $ext) {
+            $total += $ext->total;
+        }
+
+        $day = getDay();
+        $day->total += $total;
+        $day->save();
+
+        if ($sale->type == 1) {
+            $this->deleteSaleAllTable($sale);
+        } else {
+            $this->deleteSaleAll($sale);
+        }
+
+        $this->customNotification('success', 'Éxito', 'La venta se finalizó correctamente.');
     }
 }

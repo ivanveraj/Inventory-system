@@ -43,7 +43,7 @@ class ExtraTableColumn extends Component implements HasForms, HasActions
                         ->placeholder('Seleccione un producto')
                         ->columnSpan(2)->required()->searchable()
                         ->options(
-                            Product::all()->mapWithKeys(function ($product) {
+                            Product::where('is_activated', 1)->get()->mapWithKeys(function ($product) {
                                 return [
                                     $product->id => "{$product->sku} - {$product->name} ($" . $product->saleprice . ")",
                                 ];
@@ -60,7 +60,7 @@ class ExtraTableColumn extends Component implements HasForms, HasActions
                 ])
             ])
             ->action(function (array $data) {
-                $product = $this->getProduct($data['product_id']);
+                $product = $this->getProductActive($data['product_id']);
                 if (is_null($product)) {
                     return $this->customNotification('error', 'Error', 'El producto no existe.');
                 }
@@ -69,8 +69,13 @@ class ExtraTableColumn extends Component implements HasForms, HasActions
                     return $this->customNotification('error', 'Error', 'El producto no tiene la cantidad suficiente.');
                 }
 
-                $this->addExtra($this->sale->id, $product, $data['amount']);
-                $this->discount($product, $data['amount']);
+                $amount = round($data['amount']);
+                if ($product->amount < $amount) {
+                    return AccionIncorrecta('', 'No existe la cantidad solicitada en el inventario');
+                }
+
+                $this->discount($product, $amount);
+                $this->addExtra($this->saleId, $product, $amount);
 
                 $this->dispatch('update-table');
 
@@ -89,7 +94,6 @@ class ExtraTableColumn extends Component implements HasForms, HasActions
             ->requiresConfirmation()
             ->action(function ($arguments) {
                 $extra = $this->getExtraById($arguments['extraId']);
-
                 if (is_null($extra)) {
                     return;
                 }
@@ -101,9 +105,9 @@ class ExtraTableColumn extends Component implements HasForms, HasActions
 
                 // Restaurar stock o cantidad
                 $this->addAmount($product, $extra->amount);
-
                 // Eliminar el extra
                 $extra->delete();
+                $this->dispatch('update-table');
 
                 // Notificación de éxito
                 $this->customNotification('success', 'Exito', "Se eliminó {$product->name} correctamente.");

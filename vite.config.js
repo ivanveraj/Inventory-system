@@ -5,7 +5,6 @@ import {
 import laravel, {
     refreshPaths
 } from 'laravel-vite-plugin';
-import tailwindcss from 'tailwindcss';
 
 export default defineConfig({
     plugins: [
@@ -20,6 +19,7 @@ export default defineConfig({
                 'app/Filament/**',
                 'app/Forms/Components/**',
                 'app/Livewire/**',
+                'app/**',
                 'app/Infolists/Components/**',
                 'app/Providers/Filament/**',
                 'app/Tables/Columns/**',
@@ -28,6 +28,5 @@ export default defineConfig({
                 'resources/views/Livewire/**',
             ],
         }),
-        tailwindcss(),
     ],
 })
