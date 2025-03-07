@@ -4,12 +4,13 @@ namespace App\Http\Traits;
 
 use App\Models\Day;
 use App\Models\Extra;
+use App\Models\ExtraHasHistoryProduct;
 use App\Models\SaleTable;
 use App\Models\Table;
+use Illuminate\Support\Facades\DB;
 
 trait SaleTrait
 {
-    use SettingTrait;
     public function getSale($id)
     {
         return SaleTable::where('id', $id)->first();
@@ -17,11 +18,11 @@ trait SaleTrait
 
     public function getSales($state, $type)
     {
-        return SaleTable::where('state', $state)->get();
+        return SaleTable::where('state', $state)->orderBy('id', 'ASC')->get();
     }
     public function getSalesType($type)
     {
-        return SaleTable::where('type', $type)->get();
+        return SaleTable::where('type', $type)->orderBy('id', 'ASC')->get();
     }
 
     public function createSaleTable($table_id, $start_time, $state, $type, $client)
@@ -34,37 +35,42 @@ trait SaleTrait
             'client' => $client
         ]);
     }
-    public function getExtra($sale_id, $product_id)
+    public function getExtra($sale_id, $product_id, $historyP_id)
     {
-        return Extra::where('sale_id', $sale_id)->where('product_id', $product_id)->first();
+        return Extra::where('sale_id', $sale_id)->where('product_id', $product_id)->where('history_p', $historyP_id)->first();
     }
+
+    public function getExtras($sale_id, $product_id)
+    {
+        return Extra::where('sale_id', $sale_id)->where('product_id', $product_id)->orderBy('created_at', 'DESC')->get();
+    }
+
+    public function getLastExtra($sale_id, $product_id)
+    {
+        return Extra::where('sale_id', $sale_id)->where('product_id', $product_id)->orderBy('created_at', 'DESC')->first();
+    }
+
     public function getExtraById($id)
     {
         return Extra::where('id', $id)->first();
     }
-    public function addExtra($sale_id, $product, $amount)
+    public function addExtra($sale_id, $product, $historyP_id, $amount)
     {
-        $extra = $this->getExtra($sale_id, $product->id);
+        $extra = $this->getExtra($sale_id, $product->id, $historyP_id);
         if (is_null($extra)) {
-            Extra::create([
+            $extra = Extra::create([
                 'sale_id' => $sale_id,
+                'name' => $product->name,
                 'product_id' => $product->id,
-                'price' => $product->saleprice,
-                'amount' => $amount,
-                'total' => $product->saleprice * $amount
+                'history_p' => $historyP_id,
+                'amount' => $amount
             ]);
         } else {
             $extra->amount += $amount;
-            $extra->total = $extra->amount * $extra->price;
             $extra->save();
         }
     }
-    public function changeAmount($extra, $amount)
-    {
-        $extra->amount = $amount;
-        $extra->total = $extra->price * $amount;
-        $extra->save();
-    }
+
     public function deleteSaleAll($sale)
     {
         Extra::where('sale_id', $sale->id)->delete();
@@ -99,54 +105,25 @@ trait SaleTrait
         $day->save();
     }
 
-    public function calculateTotal($sale, $minPrice = null, $minTime = null, $priceXHora = null)
+    public function getExtrasSale($sale_id)
     {
-        $extras = $sale->extras;
-        $total = 0;
-
-        if (!is_null($sale->start_time)) {
-            $time = DateDifference(now(), $sale->start_time);
-            $total = ($time < $minTime) ? $minPrice : round(($priceXHora / 60) * $time);
-        }
-
-        // Sumar el total de los extras
-        $total += $extras->sum('total');
-        return '$' . number_format($total, 0);
+        return DB::table('extras')->select('extras.*', 'products.name', 'products.saleprice', 'history_products.buyprice')
+            ->leftJoin('products', 'extras.product_id', '=', 'products.id')
+            ->leftJoin('history_products', 'extras.history_p', '=', 'history_products.id')
+            ->where('sale_id', $sale_id)->get();
     }
 
-    public function endSale($sale)
+    public function getTotalSale($sale)
     {
         $total = 0;
-        if (!is_null($sale->start_time)) {
-            $TiempoMinimo = $this->getSetting('TiempoMinimo');
+        if ($sale->type == 1 && !is_null($sale->start_time)) {
             $time = DateDifference(date('Y-m-d H:i:s'), $sale->start_time);
-            if ($time < $TiempoMinimo) {
-                $total = $this->getSetting('PrecioMinimo');
-            } else {
-                $PrecioXHora = $this->getSetting('PrecioXHora');
-                $total = round(($PrecioXHora / 60) * $time);
-            }
+            $total = ($time < $this->getSetting('TiempoMinimo')) ? $this->getSetting('PrecioMinimo') : round(($this->getSetting('PrecioXHora') / 60) * $time);
         }
 
-        if ($sale->type == 2) {
-            $total = 0;
+        foreach ($this->getExtrasSale($sale->id) as $extra) {
+            $total += $extra->saleprice * $extra->amount;
         }
-
-        $extras = $sale->Extras;
-        foreach ($extras as $ext) {
-            $total += $ext->total;
-        }
-
-        $day = getDay();
-        $day->total += $total;
-        $day->save();
-
-        if ($sale->type == 1) {
-            $this->deleteSaleAllTable($sale);
-        } else {
-            $this->deleteSaleAll($sale);
-        }
-
-        $this->customNotification('success', 'Éxito', 'La venta se finalizó correctamente.');
+        return $total;
     }
 }

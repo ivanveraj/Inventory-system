@@ -1,6 +1,46 @@
+table.dataTable thead .sorting:before,
+.dt-buttons.btn-group.flex-wrap {
+    gap: 5px;
+}
+
+
+
+.table.dataTable.dtr-inline.collapsed>tbody>tr>td.dtr-control:before,
+table.dataTable.dtr-inline.collapsed>tbody>tr>td.dtr-control:before {
+    left: -15px !important;
+    background-color: #1b2c3f !important;
+}
+
+span.select2-selection.select2-selection--single {
+    width: 280px !important;
+    max-width: 280px !important;
+}
+
+#sidebar-menu .has-arrow:after {
+    font-family: 'Font Awesome 5 Solid' !important;
+    content: '\f3be' !important;
+}
+
+/* Template */
+body[data-topbar=dark] #page-topbar {
+    background-color: #1b2c3f !important;
+}
+
+.page-title-box {
+    padding-bottom: 0 !important;
+}
+
 .table>tbody {
     text-align: center !important;
     vertical-align: middle !important;
+}
+
+.breadcrumb-item+.breadcrumb-item::before {
+    content: "/" !important;
+}
+
+.breadcrumb-item {
+    font-size: 12px !important;
 }
 
 .table>tbody>tr>td {
@@ -12,8 +52,32 @@ table.dataTable thead th {
     text-align: center !important;
 }
 
+.toast {
+    background-color: #030303 !important;
+}
+
+.toast-success {
+    background-color: #51A351 !important;
+}
+
+.toast-error {
+    background-color: #BD362F !important;
+}
+
+.toast-info {
+    background-color: #2F96B4 !important;
+}
+
+.toast-warning {
+    background-color: #F89406 !important;
+}
+
 .dataTables_wrapper {
     width: 100% !important;
+}
+
+.dataTables_length select {
+    width: 60px !important;
 }
 
 .parsley-errors-list {
@@ -55,11 +119,20 @@ input[type=number] {
     display: flex !important;
     align-items: center !important;
     border-color: rgb(209 213 219 / var(--tw-border-opacity));
-    max-width: 220px !important;
 }
 
 span.select2-search.select2-search--inline {
     width: 100% !important;
+}
+
+
+.card-footer {
+    background-color: transparent !important;
+    border-top: 0 !important;
+}
+
+.borderBox {
+    border: 1px solid #1b2c3f;
 }
 
 .overlay {
@@ -86,7 +159,7 @@ span.select2-search.select2-search--inline {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 2000;
+    z-index: 9999;
 }
 
 .loader {

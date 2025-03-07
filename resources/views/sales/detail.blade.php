@@ -1,53 +1,49 @@
-<x-modalB modalId="modalPayment" title="Detalle del pago" modalTitle="modalTitle" class="modal-lg">
+@php
+    $table = $sale->Table;
+    $table = is_null($table) ? '(Sin nombre)' : '(' . $table->name . ')';
+@endphp
+
+<x-modalB modalId="modalPayment" title="Cuenta de: {{ is_null($sale->client) ? $table : $sale->client }}"
+    modalTitle="modalTitle" class="modal-lg">
     <form id="FormPayment" action="{{ route('sale.accountPayment') }}" method="POST">
         @csrf
         <input type="hidden" name="sale_id" value="{{ $sale->id }}">
         <div class="modal-body">
-            @php
-                $table = $sale->Table;
-                $table = is_null($table) ? 'Sin nombre' : $table->name;
-            @endphp
-            <div class="my-3">
-                <h5 class="text-center">{{ is_null($sale->client) ? $table : 'Cuenta de: ' . $sale->client }}</h5>
-            </div>
-            <table id="detailTable" class="w-full mb-0 align-top border-gray-200 text-slate-900">
-                <thead class="text-center">
-                    <tr
-                        class="px-6 py-3 font-bold uppercase align-middle border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-900 opacity-70">
-                        <th>Producto</th>
-                        <th>Cantidad</th>
-                        <th>Precio</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($extras as $extra)
-                        <tr class="text-center">
-                            @php
-                                $product = $extra->Product;
-                            @endphp
-                            <td class="break-words">{{ is_null($product) ? 'Sin nombre' : $product->name }}</td>
-                            <td>{{ $extra->amount }}</td>
-                            <td>{{ formatMoney($extra->price) }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-            <div class="flex justify-between items-center mt-4">
-                <div>
-                    @if ($sale->type == 1 && $sale->start_time)
-                        <h5>Tiempo: {{ $time }} (minutos)</h5>
-                        <h5>Precio tiempo: {{ formatMoney($priceTime) }}</h5>
-                    @endif
-                </div>
-                <div>
-                    <h5>Total a pagar: {{ formatMoney($total) }}</h5>
-                </div>
-            </div>
 
+            @if ($sale->type == 1 && $sale->start_time)
+                <p class="text-base font-semibold text-center">
+                    <span>Tiempo: ${{ formatMoney($priceTime) }} ({{ $time }} minutos)</span>
+                </p>
+            @endif
+
+            @if (!empty($sale->ArrayExtras))
+                <table id="detailTable" class="table dt-responsive nowrap w-100">
+                    <thead class="bg-secondary text-white vertical-align-middle">
+                        <tr class="text-center">
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Precio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($sale->ArrayExtras as $extra)
+                            <tr class="text-center">
+                                <td class="break-words">{{ $extra['name'] }}</td>
+                                <td>{{ $extra['amount'] }}</td>
+                                <td>${{ formatMoney($extra['price'] * $extra['amount']) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+
+            <div class="alert bg-secondary text-white text-xl text-center mb-0 mt-2" role="alert">
+                Total a pagar: ${{ formatMoney($total) }}
+            </div>
         </div>
-      {{--   <div class="modal-footer">
-            <x-jet-secondary-button type="button" data-bs-dismiss="modal">Cerrar</x-jet-secondary-button>
+        <div class="modal-footer">
+            <x-jet-danger-button type="button" data-bs-dismiss="modal">Cerrar</x-jet-danger-button>
             <x-jet-button>Pagado</x-jet-button>
-        </div> --}}
+        </div>
     </form>
 </x-modalB>

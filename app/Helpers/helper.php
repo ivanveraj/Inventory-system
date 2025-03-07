@@ -1,13 +1,15 @@
 <?php
 
 use App\Models\Day;
+use App\Models\HistoryTable;
 use App\Models\Rol;
 use App\Models\RolHasPermission;
+use App\Models\Table;
 use App\Models\User;
 
 function validatePermission(User $user, $id_permission)
 {
-    if ($user->rol_id == 1) {
+    if (in_array($user->rol_id, [1, 2])) {
         return true;
     }
     return session()->has('permissions') ? in_array($id_permission, session()->get('permissions')) : false;
@@ -71,12 +73,22 @@ function DateDifference($date1, $date2)
     $minutes = (strtotime($date1) - strtotime($date2)) / 60;
     return floor($minutes);
 }
+function DateDifferenceSeconds($date1, $date2)
+{
+    $minutes = (strtotime($date1) - strtotime($date2)) / 60;
+    $seconds = $minutes * 60;
+    return $seconds;
+}
 
 function getDay()
 {
     $day = Day::whereNull('finish_day')->orderBy('created_at', 'DESC')->first();
     if (is_null($day)) {
-        $day = Day::create(['total' => 0]);
+        $day = Day::create(['total' => 0, 'profit' => 0]);
+        $tables = Table::where('state', 1)->orderBy('id', 'ASC')->get();
+        foreach ($tables as $table) {
+            HistoryTable::create(['day_id' => $day->id, 'table_id' => $table->id, 'time' => 0]);
+        }
     }
     return $day;
 }

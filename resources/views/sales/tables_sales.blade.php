@@ -1,7 +1,6 @@
-<table id="sales" class="items-center w-full mb-0 align-top border-gray-200 text-slate-500">
-    <thead class="text-center">
-        <tr
-            class="px-6 py-3 font-bold uppercase align-middle border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
+<table id="sales" class="table dt-responsive nowrap w-100">
+    <thead class="bg-secondary text-white vertical-align-middle">
+        <tr class="text-center">
             <th>Mesa</th>
             <th>Tiempo</th>
             <th>Extras</th>
@@ -12,7 +11,7 @@
         @foreach ($sales as $sale)
             @php
                 $table = $sale->Table;
-                $extras = $sale->Extras;
+                
                 if (is_null($sale->start_time)) {
                     $total = 0;
                 } else {
@@ -25,77 +24,125 @@
                     }
                 }
                 
-                foreach ($extras as $e) {
-                    $total += $e->total;
+                $sale->total += $total;
+                
+                $labelH = '00';
+                $labelM = '00';
+                $labelS = '00';
+                $hours = 0;
+                $minutes = 0;
+                $seconds = 0;
+                $x = 0;
+                if (!is_null($sale->start_time)) {
+                    $x = DateDifferenceSeconds(date('Y/m/d H:i:s'), $sale->start_time);
+                    $hours = floor($x / 3600);
+                    $labelH = $hours < 10 ? '0' . $hours : $hours;
+                    $minutes = floor(($x - $hours * 3600) / 60);
+                    $labelM = $minutes < 10 ? '0' . $minutes : $minutes;
+                    $seconds = $x - $hours * 3600 - $minutes * 60;
+                    $labelS = $seconds < 10 ? '0' . $seconds : $seconds;
                 }
             @endphp
             <tr>
-                <td class="p-2 align-middle bg-transparent border-b">
-                    {{ is_null($table) ? 'Tabla sin nombre' : $table->name }}</td>
-                <td class="p-2 align-middle bg-transparent border-b">
+                <td>
+                    <span class="text-base font-medium ">{{ is_null($table) ? 'Tabla sin nombre' : $table->name }}</span>
+                </td>
+                <td>
                     <div>
-                        <h6>{{ is_null($sale->start_time) ? '' : DateDifference(date('Y-m-d H:i:s'), $sale->start_time) . ' minutos' }}
-                        </h6>
-                        <x-jet-button type="button" onclick="startTime({{ $sale->id }})"
-                            class="startTime_{{ $sale->id }} {{ is_null($sale->start_time) ? '' : 'hidden' }}">
-                            Iniciar
-                        </x-jet-button>
+                        <div class="justify-center {{ is_null($sale->start_time) ? 'hidden' : 'd-flex' }}"
+                            id="timer_{{ $sale->id }}">
+                            <div id="hours_{{ $sale->id }}" data-time="{{ $hours }}">{{ $labelH }}
+                            </div>:
+                            <div id="minutes_{{ $sale->id }}" data-time="{{ $minutes }}">
+                                {{ $labelM }}
+                            </div>:
+                            <div id="seconds_{{ $sale->id }}" data-time="{{ $seconds }}">
+                                {{ $labelS }}
+                            </div>
+                        </div>
+                        <button type="button" onclick="startTime({{ $sale->id }})"
+                            onclick="startTime({{ $sale->id }})" data-toggle="tooltip" data-placement="top"
+                            title="Iniciar tiempo"
+                            class="btn bg-primary text-white startTime_{{ $sale->id }} {{ is_null($sale->start_time) ? '' : 'd-none' }}">
+                            <i class="fas fa-play"></i>
+                        </button>
                     </div>
                 </td>
-                <td class="p-2 align-middle bg-transparent border-b">
-                    <div class="flex justify-center">
+                <td>
+                    <div class="flex justify-center w-100">
                         <form id="formAddProduct_{{ $sale->id }}" action="{{ route('sale.addProduct') }}"
                             method="POST">
                             @csrf
                             <input type="hidden" value="{{ $sale->id }}" name="sale_id">
-                            <div class="flex justify-center items-center {{ $extras->isEmpty() ? '' : 'mb-3' }}">
-                                <div class="w-2/3">
-                                    <x-jet-input type="number" name="amount" class="w-full" placeholder="Cantidad">
-                                    </x-jet-input>
-                                </div>
-                                <div class="w-full ml-3">
-                                    <div class="flex items-center">
-                                        <div>
-                                            <select id="selectProduct_{{ $sale->id }}" name="product_id"
-                                                class="form-control" style="max-width: 250px !important"></select>
-                                        </div>
-                                        <div>
-                                            <button type="submit" class="btn btn-secondary w-full ml-2">
-                                                <i class="fa fa-plus"></i>
-                                            </button>
-                                        </div>
-                                    </div>
+                            <div
+                                class="flex justify-center items-center {{ empty($sale->ArrayExtras) ? '' : 'mb-3' }}">
+                                <x-jet-input type="number" name="amount" style="max-width: 5rem !important"
+                                    placeholder="Cant">
+                                </x-jet-input>
+                                <div class="flex items-center ml-3 w-full">
+                                    <select id="selectProduct_{{ $sale->id }}" name="product_id"
+                                        class="form-control jquerySelect2-tag"></select>
+                                    <button type="submit" class="btn bg-primary text-white btn-sm ml-2"
+                                        data-toggle="tooltip" data-placement="top" title="Agregar producto">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
                                 </div>
                             </div>
                         </form>
                     </div>
-                    @if (!$extras->isEmpty())
-                        <table class="w-full mb-0 align-top border-gray-200 text-slate-900">
-                            <thead class="text-center">
-                                <tr
-                                    class="px-6 py-3 font-bold uppercase align-middle border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
-                                    <th>Producto</th>
+                    @if (!empty($sale->ArrayExtras))
+                        <table class="w-100">
+                            <thead class="vertical-align-middle">
+                                <tr class="text-center">
+                                    <th class="w-50">Producto</th>
                                     <th>Cantidad</th>
                                     <th>Precio</th>
                                     <th>Accion</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($extras as $extra)
+                                @foreach ($sale->ArrayExtras as $extra)
                                     <tr>
-                                        <td class="break-words">{{ $extra->Product->name }}</td>
+                                        <td class="break-words text-xs">{{ $extra['name'] }}</td>
                                         <td>
-                                            <x-jet-input type="number" id="amountExtra_{{ $extra->id }}"
-                                                class="w-full" value="{{ $extra->amount }}">
-                                            </x-jet-input>
+                                            <div class="flex justify-center items-center">
+                                                <span class="text-base font-semibold"
+                                                    id="amount_{{ $sale->id }}_{{ $extra['product_id'] }}_1"
+                                                    data-price="{{ $extra['amount'] }}">
+                                                    {{ $extra['amount'] }}
+                                                </span>
+                                                <div class="ml-2">
+                                                    <div>
+                                                        <button type="button" class="text-success"
+                                                            onclick="plusExtra({{ $extra['product_id'] }},{{ $sale->id }},1)"
+                                                            id="plus_{{ $extra['product_id'] }}_{{ $sale->id }}_1"
+                                                            data-toggle="tooltip" data-placement="top" title="Sumar">
+                                                            <i class="fas fa-plus"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div>
+                                                        <button type="button" class="text-danger"
+                                                            onclick="minExtra({{ $extra['product_id'] }},{{ $sale->id }},1)"
+                                                            id="min_{{ $extra['product_id'] }}_{{ $sale->id }}_1"
+                                                            data-toggle="tooltip" data-placement="top" title="Restar">
+                                                            <i class="fas fa-minus"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td id="priceExtra_{{ $extra->id }}" data-price="{{ $extra->price }}">
-                                            {{ $extra->price }}</td>
+                                        <td id="priceExtra_{{ $extra['product_id'] }}"
+                                            data-price="{{ $extra['price'] }}">
+                                            <span class="text-base font-semibold">
+                                                ${{ formatMoney($extra['price']) }}
+                                            </span>
+                                        </td>
                                         <td>
-                                            <x-jet-danger-button type="button"
-                                                onclick="deleteExtra({{ $extra->id }},1)">
-                                                <i class="fas fa-backspace fa-2x"></i>
-                                            </x-jet-danger-button>
+                                            <button type="button" class="btn btn-sm bg-danger text-white"
+                                                onclick="deleteExtra({{ $extra['product_id'] }},{{ $sale->id }},1)"
+                                                data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                                <i class="fas fa-backspace"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -104,11 +151,16 @@
                     @endif
                 </td>
                 <td class="p-2 align-middle bg-transparent border-b">
-                    <x-jet-button class="bg-success" data-toggle="tooltip" data-placement="top"
-                        id="totalExtra_{{ $sale->id }}" title="Cobrar"
-                        onclick="viewDetail({{ $sale->id }},1)">
-                        {{ $total }}
-                    </x-jet-button>
+
+                    @if ($sale->total != 0)
+                        <button type="submit" data-toggle="tooltip" data-placement="top" title="Cobrar"
+                            onclick="viewDetail({{ $sale->id }},1)" id="totalExtra_{{ $sale->id }}"
+                            class="btn bg-primary text-white font-extrabold">
+                            {{ $sale->total }}
+                        </button>
+                    @else
+                        <span class="btn bg-primary text-white font-extrabold">0</span>
+                    @endif
                 </td>
             </tr>
         @endforeach

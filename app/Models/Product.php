@@ -26,5 +26,7 @@ class Product extends Model
         'is_activated',
         'has_stock_alert',
         'min_stock_alert',
+        'utility',
+        'state'
     ];
 }

@@ -4,35 +4,34 @@
 @section('title_page', 'Inventario')
 
 @section('breadcrumb')
-    <li class="text-size-sm pl-2 capitalize leading-normal text-slate-700 before:float-left before:pr-2 before:text-gray-600 before:content-['/']"
-        aria-current="page">Inventario</li>
+    <li class="breadcrumb-item">Inventario</li>
 @endsection
 
 @section('content')
-    <x-card>
-        <div class="flex justify-between my-3 p-2">
-            <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" role="switch" id="allProducts" />
-                <label class="form-check-label" for="allProducts">Listar todos los productos</label>
+    <div class="card">
+        <div class="card-body">
+            <div class="flex justify-between my-3">
+                <div>
+                    <button type="button" onclick="reloadTable()" data-toggle="tooltip" data-placement="top" title="Recargar">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <x-jet-button type="button" onclick="create()">Nuevo producto</x-jet-button>
             </div>
-            <x-jet-button type="button" onclick="create()">Crear un nuevo producto</x-jet-button>
-        </div>
-        <div class="flex justify-center">
-            <table id="products" class="p-4 items-center align-top border-gray-200 text-slate-500 text-center" style="width: 100%">
-                <thead>
-                    <tr
-                        class="px-6 py-3 font-bold uppercase align-middle border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
+
+            <table id="products" class="table dt-responsive nowrap w-100">
+                <thead class="bg-secondary text-white vertical-align-middle">
+                    <tr class="text-center">
                         <th>Producto</th>
                         <th>Stock</th>
-                        <th>Compra</th>
-                        <th>Venta</th>
+                        <th>Precio</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
             </table>
         </div>
-    </x-card>
+    </div>
 
     <div id="contCreate"></div>
     <div id="contEdit"></div>
@@ -41,46 +40,42 @@
 @push('js')
     <script src="{{ asset('js/admin/sweetalert2.js') }}"></script>
     <script>
-        var state = document.getElementById('allProducts');
-        var active = 0;
         $(function() {
             reloadTable()
         });
 
-        state.addEventListener('change', function() {
-            active = (active == 0) ? 1 : 0
-            reloadTable()
-        })
-
-
         function reloadTable() {
+            $('[data-toggle="tooltip"], .tooltip').tooltip("hide");
             $('#products').DataTable().destroy()
             $('#products').DataTable({
+                dom: 'Bfrtip',
+                buttons: [
+                    'pageLength', 'excel'
+                ],
+                "lengthMenu": [25, 50, 100, 200, 400, 600],
                 responsive: true,
                 processing: true,
-                serverSide: true,
                 ajax: {
-                    url: "{{ route('products.list') }}" + `?active=${active}`
+                    url: "{{ route('products.list') }}"
                 },
                 columns: [{
                     data: 'name',
-                    width: '30%'
+                    width: '35%'
                 }, {
                     data: 'amount',
-                    width: '15%'
-                }, {
-                    data: 'buyprice',
-                    width: '15%'
+                    width: '20%'
                 }, {
                     data: 'saleprice',
-                    width: '15%'
+                    width: '20%'
                 }, {
                     data: 'state',
                     width: '15%'
                 }, {
                     data: 'actions',
-                    width: '30%'
+                    width: '10%'
                 }],
+                "aaSorting": [],
+                language: lang,
                 "drawCallback": function(settings) {
                     $('[data-toggle="tooltip"]').tooltip();
                 }
@@ -89,8 +84,8 @@
 
         function create() {
             blockPage();
-            $.get(`{{ route('product.create') }}`, function(response) {
-                $("#contCreate").html(response);
+            $.get(`{{ route('product.create') }}`, function(r) {
+                $("#contCreate").html(r);
             }).done(function() {
                 unblockPage();
                 $("#create").modal('show')
@@ -107,34 +102,34 @@
                         contentType: false,
                         processData: false,
                         dataType: "json",
-                        success: function(response) {
+                        success: function(r) {
                             unblockPage();
                             $("#create").modal('hide');
-                            addToastr(response.type, response.title, response.message)
+                            addToastr(r.type, r.title, r.message)
                             reloadTable()
                         },
-                        error: function(response) {
+                        error: function(r) {
                             unblockPage();
-                            addErrorInputs('#FormCreate', response)
+                            addErrorInputs('#FormCreate', r)
                         }
                     });
                 });
-            }).fail(function(response) {
+            }).fail(function(r) {
                 unblockPage();
             });
         }
 
         function edit(id) {
             blockPage()
-            $.get(`{{ route('product.show') }}/${id}`, function(response) {
-                if (response.status != undefined) {
-                    addToastr(response.type, response.title, response.message)
+            $.get(`{{ route('product.show') }}/${id}`, function(r) {
+                if (r.status != undefined) {
+                    addToastr(r.type, r.title, r.message)
                 } else {
-                    $("#contEdit").html(response);
+                    $("#contEdit").html(r);
                 }
-            }).done(function(response) {
+            }).done(function(r) {
                 unblockPage()
-                if (response.status == undefined) {
+                if (r.status == undefined) {
                     $("#edit").modal('show')
 
                     $('#FormEdit').submit(function(e) {
@@ -149,16 +144,16 @@
                             contentType: false,
                             processData: false,
                             dataType: "json",
-                            success: function(response) {
+                            success: function(r) {
                                 unblockPage()
                                 $("#edit").modal('hide');
                                 $('#FormEdit')[0].reset();
                                 reloadTable()
-                                addToastr(response.type, response.title, response.message)
+                                addToastr(r.type, r.title, r.message)
                             },
-                            error: function(response) {
+                            error: function(r) {
                                 unblockPage()
-                                addErrorInputs('#FormEdit', response)
+                                addErrorInputs('#FormEdit', r)
                             }
                         });
                     });
@@ -168,11 +163,11 @@
             });
         }
 
-        function archive(id,state) {
+        function archive(id, state) {
             let msj = state == 1 ? "Desea archivar el producto" : "Desea activar el producto"
             let sw = SweetConfirmation(msj, "Si", "No")
-            sw.then(response => {
-                if (response == true) {
+            sw.then(r => {
+                if (r == true) {
                     blockPage();
                     $.ajax({
                         type: 'POST',
@@ -182,12 +177,12 @@
                             'id': id
                         },
                         dataType: "json",
-                        success: function(response) {
+                        success: function(r) {
                             unblockPage()
-                            addToastr(response.type, response.title, response.message)
+                            addToastr(r.type, r.title, r.message)
                             reloadTable();
                         },
-                        error: function(response) {
+                        error: function(r) {
                             unblockPage()
                         }
                     });
@@ -196,17 +191,22 @@
         }
 
         function addStock(id) {
-            blockPage()
-            $.get(`{{ route('product.addStock') }}/${id}`, function(response) {
-                if (response.status != undefined) {
-                    addToastr(response.type, response.title, response.message)
+            blockPage();
+            $.get(`{{ route('product.addStock') }}/${id}`, function(r) {
+                if (r.status != undefined) {
+                    addToastr(r.type, r.title, r.message)
                 } else {
-                    $("#contStock").html(response);
+                    $("#contStock").html(r);
                 }
-            }).done(function(response) {
+            }).done(function(r) {
                 unblockPage()
-                if (response.status == undefined) {
+                if (r.status === undefined) {
                     $("#addStock").modal('show')
+
+                    $('#addStock').on('shown.bs.modal', function() {
+                        reloadAddStockTable();
+                    });
+
 
                     $('#FormAdd').submit(function(e) {
                         e.preventDefault();
@@ -220,16 +220,82 @@
                             contentType: false,
                             processData: false,
                             dataType: "json",
-                            success: function(response) {
-                                unblockPage()
-                                $("#addStock").modal('hide');
-                                $('#FormAdd')[0].reset();
-                                reloadTable()
-                                addToastr(response.type, response.title, response.message)
+                            success: function(r) {
+                                addToastr(r.type, r.title, r.message);
+                                if (r.status === 1) {
+                                    $("#addStock").modal('hide');
+                                    addStock(id);
+                                    reloadTable();
+                                } else {
+                                    unblockPage();
+                                }
                             },
-                            error: function(response) {
+                            error: function(r) {
+                                unblockPage();
+                                addErrorInputs('#FormAdd', r)
+                            }
+                        });
+                    });
+                }
+            }).fail(function() {
+                unblockPage()
+            });
+        }
+
+        function reloadAddStockTable() {
+            $('[data-toggle="tooltip"], .tooltip').tooltip("hide");
+            $('#history_price').DataTable().destroy();
+            var table = $('#history_price').DataTable({
+                dom: 'Bfrtip',
+                buttons: [
+                    'pageLength', 'excel'
+                ],
+                "lengthMenu": [25, 50, 100, 200, 400, 600],
+                responsive: true,
+                processing: true,
+                language: lang,
+                "drawCallback": function(settings) {
+                    $('[data-toggle="tooltip"]').tooltip();
+                }
+            });
+
+            table.columns.adjust().responsive.recalc();
+        }
+
+        function deleteStock(id) {
+            blockPage()
+            $.get(`{{ route('product.deleteStock') }}/${id}`, function(r) {
+                if (r.status != undefined) {
+                    addToastr(r.type, r.title, r.message)
+                } else {
+                    $("#contStock").html(r);
+                }
+            }).done(function(r) {
+                unblockPage()
+                if (r.status == undefined) {
+                    $("#deleteStock").modal('show')
+
+                    $('#FormDelete').submit(function(e) {
+                        e.preventDefault();
+                        blockPage();
+                        let formData = new FormData(this);
+                        let formAction = $(this).attr("action");
+                        $.ajax({
+                            type: 'POST',
+                            url: formAction,
+                            data: formData,
+                            contentType: false,
+                            processData: false,
+                            dataType: "json",
+                            success: function(r) {
                                 unblockPage()
-                                addErrorInputs('#FormAdd', response)
+                                $("#deleteStock").modal('hide');
+                                reloadTable()
+                                addToastr(r.type, r.title, r.message)
+                            },
+                            error: function(r) {
+                                unblockPage()
+                                addErrorInputs('#FormDelete', r)
                             }
                         });
                     });

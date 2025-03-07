@@ -20,7 +20,7 @@
                                     reader.readAsDataURL($refs.photo.files[0]);
                             " />
 
-                <x-jet-label for="photo" value="Foto de perfil" />
+                <x-jet-label for="photo" value="Foto de perfil" class="text-center" />
 
                 <div class="flex justify-center">
                     <div>
@@ -35,7 +35,7 @@
                             </span>
                         </div>
 
-                        <x-jet-secondary-button class="my-3" type="button" x-on:click.prevent="$refs.photo.click()">
+                       {{--  <x-jet-secondary-button class="my-3" type="button" x-on:click.prevent="$refs.photo.click()">
                             Seleccione una nuevo foto de perfil
                         </x-jet-secondary-button>
 
@@ -43,29 +43,30 @@
                             <x-jet-danger-button type="button" class="mt-2" wire:click="deleteProfilePhoto">
                                 Eliminar foto
                             </x-jet-danger-button>
-                        @endif
+                        @endif --}}
                     </div>
                 </div>
-
-
 
                 <x-jet-input-error for="photo" class="mt-2" />
             </div>
         @endif
 
         <!-- Name -->
-        <div class="col-span-6 sm:col-span-4">
-            <x-jet-label for="name" value="Nombre" />
-            <x-jet-input id="name" type="text" class="mt-1 block w-full" wire:model.defer="state.name"
-                autocomplete="name" />
-            <x-jet-input-error for="name" class="mt-2" />
-        </div>
-
-        <!-- Email -->
-        <div class="col-span-6 sm:col-span-4">
-            <x-jet-label for="email" value="Correo electronico" />
-            <x-jet-input id="email" type="email" class="mt-1 block w-full" wire:model.defer="state.email" />
-            <x-jet-input-error for="email" class="mt-2" />
+        <div class="px-12">
+            <div class="grid grid-cols-1 gap-4">
+                <div>
+                    <x-jet-label for="name" value="Nombre" />
+                    <x-jet-input id="name" type="text" class="mt-1 block w-full" wire:model.defer="state.name"
+                        autocomplete="name" />
+                    <x-jet-input-error for="name" class="mt-2" />
+                </div>
+                <div>
+                    <x-jet-label for="user" value="Usuario" />
+                    <x-jet-input id="user" type="text" class="mt-1 block w-full"
+                        wire:model.defer="state.user" />
+                    <x-jet-input-error for="user" class="mt-2" />
+                </div>
+            </div>
         </div>
     </x-slot>
 

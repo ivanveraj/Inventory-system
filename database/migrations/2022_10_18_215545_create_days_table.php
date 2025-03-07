@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->timestamp('finish_day')->nullable();
             $table->double('total');
+            $table->double('profit');
             $table->timestamps();
         });
     }

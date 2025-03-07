@@ -4,8 +4,7 @@
 @section('title_page', 'Gestion de perfil de usuario')
 
 @section('breadcrumb')
-    <li class="text-size-sm pl-2 capitalize leading-normal text-slate-700 before:float-left before:pr-2 before:text-gray-600 before:content-['/']"
-        aria-current="page">Gestion de perfil de usuario</li>
+    <li class="breadcrumb-item">Gestion de perfil de usuario</li>
 @endsection
 
 @push('css')
@@ -21,7 +20,6 @@
             @livewire('profile.update-profile-information-form')
             <x-jet-section-border />
         @endif
-
 
         @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::updatePasswords()))
             <div class="mt-10 sm:mt-0">

@@ -23,35 +23,37 @@ class RolController extends Controller
 
     public function datatable(Request $rq)
     {
-        $roles = Rol::where('state', 1)->whereNot('id', 1)->get();
-        $permissions = VerifyPermissions(Auth::user(), [13, 14, 15, 16, 30, 36, 43]);
+        $roles = Rol::whereNot('id', 1)->orderBy('created_at', 'DESC')->get();
         return DataTables::of($roles)
             ->addColumn('name', function ($rol) {
                 return $rol->name;
             })
             ->addColumn('users_associated', function ($rol) {
-                return '<span class="badge bg-primary">' . TotalUserAssociated($rol->id) . '</span>';
+                return '<span class="badge bg-primary" style="font-size:14px">' . TotalUserAssociated($rol->id) . '</span>';
             })
-            ->addColumn('permissions', function ($rol) use ($permissions) {
-                $associatedP = '<button onclick="permissionsRol(' . $rol->id . ')" type="button" class="btn btn-primary">
+            ->addColumn('state', function ($user) {
+                $state = $user->state == 1 ? '  <span
+                class="badge rounded-pill bg-success" style="font-size:14px">Activo</span>' : ' <span
+                class="badge rounded-pill bg-danger" style="font-size:14px">Inactivo</span>';
+                return $state;
+            })
+            ->addColumn('permissions', function ($rol) {
+                $associatedP = '<button onclick="permissionsRol(' . $rol->id . ')" type="button" class="btn bg-primary text-white" data-toggle="tooltip" data-placement="top" title="Modificar permisos del rol">
                 <i class="fa fa-address-book"></i> Permisos</button>';
-
-                /* $associatedP = ($permissions[9]) ? $associatedP : ''; */
                 return $associatedP;
             })
-            ->addColumn('actions', function ($rol) use ($permissions) {
-                $Edit =  '<button onclick="editRol(' . $rol->id . ')" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="top" title="Editar">
-                <i class="fas fa-edit"></i></button>';
-                $Archive =  '<button onclick="archiveRol(' . $rol->id . ')" class="btn btn-primary btn-sm ml-2" data-toggle="tooltip" data-placement="top" title="Archivar">
-                <i class="fas fa-trash"></i></button>';
-
-                /* $Edit = ($permissions[3]) ? $Edit : '';
-                        $Archive = ($permissions[4]) ? $Archive : ''; */
-
-
-                return "<center>$Edit $Archive</center>";
+            ->addColumn('actions', function ($rol) {
+                if (!in_array($rol->id, [1, 2, 3])) {
+                    $Edit =  '<button onclick="editRol(' . $rol->id . ')" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="top" title="Editar">
+                    <i class="fas fa-edit"></i></button>';
+                    $msj = $rol->state == 1 ? 'Archivar' : 'Activar';
+                    $icon = $rol->state == 1 ? '<i class="fas fa-trash"></i>' : '<i class="fas fa-sync-alt"></i>';
+                    $Archive =  '<button onclick="archiveRol(' . $rol->id . ',' . $rol->state . ')" class="btn btn-primary btn-sm ml-2" data-toggle="tooltip" data-placement="top" title="' . $msj . '">' . $icon . '</button>';
+                    return "<center>$Edit $Archive</center>";
+                }
+                return "<center>No modificable</center>";
             })
-            ->rawColumns(['name', 'users_associated', 'permissions', 'actions'])->make(true);
+            ->rawColumns(['name', 'users_associated', 'permissions', 'state', 'actions'])->make(true);
     }
     public function create(Request $rq)
     {
@@ -75,6 +77,10 @@ class RolController extends Controller
             return AccionIncorrecta('', '');
         }
 
+        if (in_array($rol->id, [1, 2, 3])) {
+            return AccionIncorrecta('', 'No modificable');
+        }
+
         return view('rols.edit_rol', compact('rol'));
     }
 
@@ -90,6 +96,10 @@ class RolController extends Controller
             return AccionIncorrecta('', '');
         }
 
+        if (in_array($rol->id, [1, 2, 3])) {
+            return AccionIncorrecta('', 'No modificable');
+        }
+
         $rol->name = $rq->name;
         $rol->save();
         return AccionCorrecta('', '');
@@ -99,14 +109,18 @@ class RolController extends Controller
     {
         $rol = $this->showRol($rq->rol_id);
         if (is_null($rol)) {
-            return AccionIncorrecta('', '');
+            return AccionIncorrecta('', 'No existe el rol');
         }
 
-        $rol->state = 0;
+        if (in_array($rol->id, [1, 2, 3])) {
+            return AccionIncorrecta('', 'No modificable');
+        }
+
+        $rol->state = $rol->state == 0 ? 1 : 0;
         $rol->save();
 
         User::where('rol_id', $rol->id)->update([
-            'rol_id' => 2
+            'rol_id' => 3
         ]);
 
         return AccionCorrecta('', '');
@@ -114,7 +128,6 @@ class RolController extends Controller
 
     public function managePermissionsRol(Request $rq)
     {
-
         $rol = $this->showRol($rq->rol_id);
 
         if (is_null($rol)) {

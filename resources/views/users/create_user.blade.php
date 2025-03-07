@@ -10,10 +10,9 @@
                     </ul>
                 </div>
                 <div class="w-full">
-                    <x-jet-label value="Correo electronico"></x-jet-label>
-                    <x-jet-input data-name="email" type="email" name="email"></x-jet-input>
-                    <ul class="parsley-errors-list filled" data-error="email">
-                    </ul>
+                    <x-jet-label value="Usuario"></x-jet-label>
+                    <x-jet-input data-name="user" type="text" name="user"></x-jet-input>
+                    <ul class="parsley-errors-list filled" data-error="user"></ul>
                 </div>
                 <div class="w-full">
                     <x-jet-label value="Contraseña"></x-jet-label>

@@ -1,11 +1,13 @@
 
 $(function () {
-    $('[data-toggle="tooltip"]').tooltip()
+    $('[data-toggle="tooltip"]').tooltip();
+    navActive = $('body').data('active');
+    $('.nav-link').removeClass('active');
+    $('.' + navActive).addClass('active');
 });
 
 
 function addToastr(type, title, message) {
-    console.log("aa");
     toastr['' + type](message, title);
 }
 
@@ -67,7 +69,7 @@ function SweetDetail(btnOk) {
 
 function initSelectProduct(id, route) {
     $(id).select2({
-        placeholder: "--Escriba un codigo de producto",
+        placeholder: "--Codigo producto",
         width: '100%',
         ajax: {
             url: route,

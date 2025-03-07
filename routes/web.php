@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Product\ProductController;
+use App\Http\Controllers\Rol\RolController;
+use App\Http\Controllers\Sale\SaleController;
+use App\Http\Controllers\Settings\SettingsController;
+use App\Http\Controllers\Table\TableController;
+use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Route;
-
-Route::get('/', function () {
-    return view('welcome');
-});
 
 /*
 |--------------------------------------------------------------------------
@@ -21,18 +24,12 @@ Route::get('/', function () {
     return view('layouts.admin.base');
 }); */
 
-/* Route::middleware(['auth:sanctum', 'verified'])->group(function () { */
+Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
 
-    /* Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboard');
-    Route::get('getDataSales', [DashboardController::class, 'getDataSales'])->name('getDataSales');
-
-    Route::group(['prefix' => 'users'], function () {
-        Route::get('index', [UserController::class, 'index'])->name('users.index')->middleware('ProtectRoutes:2');
-        Route::get('list', [UserController::class, 'list'])->name('users.list')->middleware('ProtectRoutes:2');
+    Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboard');
         Route::get('create', [UserController::class, 'create'])->name('user.create')->middleware('ProtectRoutes:2');
         Route::post('store', [UserController::class, 'store'])->name('user.store')->middleware('ProtectRoutes:2');
         Route::get('show/{id?}', [UserController::class, 'show'])->name('user.show')->middleware('ProtectRoutes:2');
-        Route::post('update', [UserController::class, 'update'])->name('user.update')->middleware('ProtectRoutes:2');
         Route::post('archive', [UserController::class, 'archive'])->name('user.archive')->middleware('ProtectRoutes:2');
         Route::get('assign/{id_user?}', [UserController::class, 'assignRol'])->name('user.assign_rol')->middleware('ProtectRoutes:2');
         Route::post('changeRol', [UserController::class, 'changeRol'])->name('user.change_rol')->middleware('ProtectRoutes:2');
@@ -58,6 +55,10 @@ Route::get('/', function () {
         Route::post('archive', [ProductController::class, 'archive'])->name('product.archive')->middleware('ProtectRoutes:4');
         Route::get('addStock/{id?}', [ProductController::class, 'addStock'])->name('product.addStock')->middleware('ProtectRoutes:4');
         Route::post('saveStock', [ProductController::class, 'saveStock'])->name('product.saveStock')->middleware('ProtectRoutes:4');
+
+        Route::get('deleteStock/{id?}', [ProductController::class, 'deleteStock'])->name('product.deleteStock')->middleware('ProtectRoutes:4');
+        Route::post('saveDeleteStock', [ProductController::class, 'saveDeleteStock'])->name('product.saveDeleteStock')->middleware('ProtectRoutes:4');
+
         Route::get('list', [ProductController::class, 'list'])->name('products.list')->middleware('ProtectRoutes:4');
         Route::get('/', [ProductController::class, 'index'])->name('products.index')->middleware('ProtectRoutes:4');
     });
@@ -87,12 +88,22 @@ Route::get('/', function () {
         Route::get('dataGeneral', [SaleController::class, 'dataGeneral'])->name('sale.dataGeneral');
         Route::get('generalSale', [SaleController::class, 'generalSale'])->name('sales.generalSale');
         Route::get('tablesSales', [SaleController::class, 'tablesSales'])->name('sales.tablesSales');
+        Route::get('histoyDetail/{history_id?}', [SaleController::class, 'histoyDetail'])->name('sale.histoyDetail');
+
+        Route::get('plusExtra', [SaleController::class, 'plusExtra'])->name('sale.plusExtra');
+        Route::get('minExtra', [SaleController::class, 'minExtra'])->name('sale.minExtra');
+
         Route::get('/', [SaleController::class, 'index'])->name('sales.index');
+    });
+
+    Route::group(['prefix' => 'history'], function () {
+        Route::get('detail_sales', [SaleController::class, 'detail_sales'])->name('sales.detail_sale');
+        Route::get('inventoryDiscount', [ProductController::class, 'inventoryDiscount'])->name('history.inventoryDiscount');
     });
 
 
     Route::group(['prefix' => 'settings'], function () {
         Route::get('/', [SettingsController::class, 'index'])->name('settings.index')->middleware('ProtectRoutes:1');
         Route::post('general', [SettingsController::class, 'general'])->name('settings.general')->middleware('ProtectRoutes:1');
-    }); */
-/* }); */
+    });
+});
