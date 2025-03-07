@@ -25,6 +25,7 @@ class SettingResource extends Resource
                 TextInput::make('group')
                     ->required()
                     ->maxLength(255)
+                    ->readOnly()
                     ->label('Group'),
                 TextInput::make('key')
                     ->required()
@@ -44,7 +45,7 @@ class SettingResource extends Resource
                 TextColumn::make('group')->sortable()->searchable()->label('Group'),
                 TextColumn::make('key')->sortable()->searchable()->label('Key'),
                 TextColumn::make('value')->sortable()->label('Value'),
-                TextColumn::make('updated_at')->dateTime()->label('Last Updated')
+                TextColumn::make('updated_at')->since()->label('Last Updated')
             ])
             ->actions([
                 EditAction::make('edit')->hiddenLabel()

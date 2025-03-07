@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('keywords')->nullable();
             $table->double('buyprice')->default(0);
             $table->double('saleprice')->default(0);
+            $table->double('utility')->default(0);
             $table->double('amount')->default(0);
             $table->double('discount')->default(0);
             $table->date('discount_to')->nullable();

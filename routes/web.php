@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Route;
     return view('layouts.admin.base');
 }); */
 
-Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
+/* Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
 
     Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboard');
         Route::get('create', [UserController::class, 'create'])->name('user.create')->middleware('ProtectRoutes:2');
@@ -106,4 +106,4 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/', [SettingsController::class, 'index'])->name('settings.index')->middleware('ProtectRoutes:1');
         Route::post('general', [SettingsController::class, 'general'])->name('settings.general')->middleware('ProtectRoutes:1');
     });
-});
+}); */
