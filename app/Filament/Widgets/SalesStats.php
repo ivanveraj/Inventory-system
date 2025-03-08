@@ -14,6 +14,11 @@ class SalesStats extends BaseWidget
 {
     use DashboardTrait, SettingTrait, TableTrait;
 
+    protected function getColumns(): int
+    {
+        return 4;
+    }
+    
     public function getStats(): array
     {
         $currentDay = getDayCurrent();
@@ -27,6 +32,9 @@ class SalesStats extends BaseWidget
         $currentProfit = $currentDay ? $currentDay->profit : 0;
         $currentTValueTable = $this->getTotalTimeRevenue($currentDay);
         $revenueFromProducts = $currentSales - $currentTValueTable;
+
+        $lastDay=getLastDay();
+        $lastDaySales = $lastDay ? $lastDay->total : 0;
 
         return [
             Stat::make('Total en caja', formatMoney($currentSales))
@@ -47,6 +55,10 @@ class SalesStats extends BaseWidget
                 ->icon('heroicon-o-chart-bar'),
             Stat::make('Ventas Totales del Día', formatMoney($totalToday))
                 ->description('Ingresos generados hoy')
+                ->color('success')
+                ->icon('heroicon-o-currency-dollar'),
+            Stat::make('Ventas del Día Anterior', formatMoney($lastDaySales))
+                ->description('Ingresos generados ayer')
                 ->color('success')
                 ->icon('heroicon-o-currency-dollar'),
             Stat::make('Últimos 6 Días', formatMoney(array_sum($salesChart) / max(1, count($salesChart))))
