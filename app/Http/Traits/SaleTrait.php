@@ -7,10 +7,12 @@ use App\Models\Extra;
 use App\Models\ExtraHasHistoryProduct;
 use App\Models\SaleTable;
 use App\Models\Table;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 trait SaleTrait
 {
+    use GeneralTrait, SettingTrait, TableTrait;
     public function getSale($id)
     {
         return SaleTable::where('id', $id)->first();
@@ -147,36 +149,55 @@ trait SaleTrait
     public function endSale($sale)
     {
         $total = 0;
-        if (!is_null($sale->start_time)) {
+        $priceTime = 0;
+        $profit = 0;
+        $time = 0;
+
+        // Calcular el precio basado en el tiempo si la venta es por tiempo
+        if (!is_null($sale->start_time) && $sale->type == 1) {
             $TiempoMinimo = $this->getSetting('TiempoMinimo');
             $time = DateDifference(date('Y-m-d H:i:s'), $sale->start_time);
+
             if ($time < $TiempoMinimo) {
                 $total = $this->getSetting('PrecioMinimo');
+                $time = $TiempoMinimo;
             } else {
-                $PrecioXHora = $this->getSetting('PrecioXHora');
-                $total = round(($PrecioXHora / 60) * $time);
+                $total = round(($this->getSetting('PrecioXHora') / 60) * $time);
             }
+
+            $priceTime = $total;
         }
 
-        if ($sale->type == 2) {
-            $total = 0;
+        $client = ($sale->type == 1) ? ($sale->Table ? $sale->Table->name : 'Mesa X') : ($sale->client ?? 'Sin nombre');
+        $historySale = $this->createHistorySale($client, 0, $priceTime, $time, Auth::id());
+
+        // Calcular el total y la ganancia por productos extra
+        foreach ($sale->Extras as $extra) {
+            $total += $extra->total;
+            $profit += ($extra->product->saleprice - $extra->product->buyprice) * $extra->amount;
+            $this->createHistoryProductSale($historySale->id, $extra->product_id, $extra->amount, $extra->product->saleprice);
         }
 
-        $extras = $sale->Extras;
-        foreach ($extras as $ext) {
-            $total += $ext->total;
-        }
+        $profit += $total;
 
+        // Actualizar las ganancias del día
         $day = getDay();
         $day->total += $total;
+        $day->profit += $profit;
         $day->save();
 
+        $historySale->total = $total;
+        $historySale->save();
+
+        // Eliminar la venta y registrar historial de mesas si aplica
         if ($sale->type == 1) {
             $this->deleteSaleAllTable($sale);
+            $this->addTimeHistoryTable($day->id, $sale->table_id, $time);
         } else {
             $this->deleteSaleAll($sale);
         }
 
+        // Notificar el éxito de la operación
         $this->customNotification('success', 'Éxito', 'La venta se finalizó correctamente.');
     }
 }

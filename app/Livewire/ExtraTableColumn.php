@@ -78,6 +78,7 @@ class ExtraTableColumn extends Component implements HasForms, HasActions
                 $this->addExtra($this->saleId, $product, $amount);
 
                 $this->dispatch('update-table');
+                $this->dispatch('refreshExtrasColumn');
 
                 $this->customNotification('success', 'Exito', "Se agregó {$data['amount']} de {$product->name} correctamente.");
             });
@@ -133,28 +134,10 @@ class ExtraTableColumn extends Component implements HasForms, HasActions
         $this->extras = Extra::where('sale_id', $this->saleId)->get();
     }
 
-    #[On('deleteSale')]
-    public function deleteSale($id)
-    {
-        if ($this->saleId === $id) {
-            SaleTable::where('id', $this->saleId)->delete();
-            $this->saleId = null;
-            $this->sale = null;
-            $this->extras = null;
-        } else {
-            $this->extras = Extra::where('sale_id', $this->saleId)->get();
-        }
-    }
-
     public function render()
     {
-        if (!$this->saleId || !SaleTable::where('id', $this->saleId)->exists()) {
-            return  view('livewire.empty');
-        }
-
         $this->sale = SaleTable::find($this->saleId);
         $this->extras = Extra::where('sale_id', $this->saleId)->get();
-
         return view('livewire.extra-table-column');
     }
 }

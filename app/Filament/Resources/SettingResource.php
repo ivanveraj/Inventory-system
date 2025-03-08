@@ -2,8 +2,7 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\GlobalSettingsResource\Pages\ManageSettings;
-use App\Filament\Resources\SettingsResource\Pages;
+use App\Filament\Resources\SettingResource\Pages\ManageSettings;
 use App\Models\Setting;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;

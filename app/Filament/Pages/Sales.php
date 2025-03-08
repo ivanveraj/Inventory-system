@@ -10,6 +10,7 @@ use App\Http\Traits\SettingTrait;
 use App\Http\Traits\TableTrait;
 use App\Models\SaleTable;
 use App\Tables\Columns\ExtraTableColumn;
+use App\Tables\Columns\ProductsColumn;
 use Carbon\Carbon;
 use Filament\Actions\Action as ActionsAction;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -116,7 +117,7 @@ class Sales extends Page implements HasTable, HasForms
                             'data-start-time' => $record->start_time ? strtotime($record->start_time) * 1000 : '-',
                         ];
                     }),
-                ExtraTableColumn::make('extras')
+                ProductsColumn::make('extras')
                     ->label('Extras'),
                 TextColumn::make('id')
                     ->label('Total')
@@ -161,8 +162,6 @@ class Sales extends Page implements HasTable, HasForms
                     ->modalCancelActionLabel('Cerrar')
                     ->slideOver()
                     ->modalContent(function ($record) {
-                        dd("aca error");
-                        $day = getDay();
                         $total = 0;
                         $priceTime = 0;
                         $time = "";
@@ -179,33 +178,8 @@ class Sales extends Page implements HasTable, HasForms
                             $priceTime = $total;
                         }
 
-                        if ($record->type == 1) {
-                            $table = $record->Table;
-                            $client = is_null($table) ? 'Mesa X' : $table->name;
-                        } else {
-                            $client = is_null($record->client) ? 'Sin nombre' : $record->client;
-                        }
-
-                        $profit = $priceTime;
-
-
                         foreach ($record->Extras as $extra) {
                             $total += $extra->total;
-                            $product = $extra->product;
-                            $profit += ($product->saleprice - $product->buyprice) * $extra->amount;
-                        }
-
-                        $day->total += $total;
-                        $day->profit += $profit;
-                        $day->save();
-
-                        $this->createHistorySale($client, $total, $priceTime, $time, Auth::id());
-
-                        if ($record->type == 1) {
-                            $this->deleteSaleAllTable($record);
-                            $this->addTimeHistoryTable($day->id, $record->table_id, $time);
-                        } else {
-                            $this->deleteSaleAll($record);
                         }
 
                         return view('filament.pages.sales.detail', ['sale' => $record, 'extras' => $record->Extras, 'time' => $time, 'total' => $total, 'priceTime' => $priceTime]);
@@ -231,7 +205,7 @@ class Sales extends Page implements HasTable, HasForms
                         $this->customNotification('success', 'Éxito', 'El día se inició correctamente.');
                         $this->resetTable();
                     }),
-            ]);;
+            ]);
     }
 
     #[On('update-table')]

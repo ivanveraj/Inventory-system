@@ -3,28 +3,33 @@
 namespace App\Livewire;
 
 use App\Http\Traits\NotificationTrait;
+use App\Http\Traits\ProductTrait;
 use App\Http\Traits\SaleTrait;
-use App\Livewire\ExtraTableColumn as LivewireExtraTableColumn;
-use App\Models\Extra;
 use App\Models\SaleTable;
-use App\Models\Shop\Product;
+use App\Models\Product;
 use App\Tables\Columns\ExtraTableColumn;
+use Filament\Actions\Action as ActionsAction;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\TextInputColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
-use Illuminate\Contracts\View\View;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-class GeneralSalesTable extends Component implements HasForms, HasTable
+class GeneralSalesTable extends Component implements HasForms, HasTable, HasActions
 {
-    use InteractsWithTable, InteractsWithForms;
-    use SaleTrait, NotificationTrait;
+    use InteractsWithTable, InteractsWithForms, InteractsWithActions;
+    use SaleTrait, NotificationTrait,ProductTrait;
 
     public function table(Table $table): Table
     {
@@ -44,9 +49,11 @@ class GeneralSalesTable extends Component implements HasForms, HasTable
                     ->sortable()->searchable()
                     ->extraCellAttributes(['class' => 'w-1/6']) // 20% del ancho
                     ->extraHeaderAttributes(['class' => 'w-1/6']),
+
                 ExtraTableColumn::make('extras')->label('Extras')
-                    ->extraCellAttributes(['class' => 'w-1/2']) // 50% del ancho
+                    ->extraCellAttributes(['class' => 'w-1/2'])
                     ->extraHeaderAttributes(['class' => 'w-1/2']),
+
                 TextColumn::make('id')
                     ->label('Total')
                     ->alignCenter()
@@ -63,55 +70,33 @@ class GeneralSalesTable extends Component implements HasForms, HasTable
                     ->color('success')
                     ->size('xl')
                     ->hidden(fn($record) => $record->extras->count() <= 0)
-                    ->modalHeading(fn($record) => 'Detalle del pago')
+                    ->modalHeading('Detalle del pago')
                     ->modalSubmitActionLabel('Pagado')
                     ->modalCancelActionLabel('Cerrar')
                     ->slideOver()
                     ->modalContent(function ($record) {
                         $total = 0;
-                        $priceTime = 0;
-                        $time = "";
-
-                        if (!is_null($record->start_time)) {
-                            $TiempoMinimo = $this->getSetting('TiempoMinimo');
-                            $time = DateDifference(date('Y-m-d H:i:s'), $record->start_time);
-                            if ($time < $TiempoMinimo) {
-                                $total = $this->getSetting('PrecioMinimo');
-                            } else {
-                                $PrecioXHora = $this->getSetting('PrecioXHora');
-                                $total = round(($PrecioXHora / 60) * $time);
-                            }
-                            $priceTime = $total;
-                        }
-
-                        if ($record->type == 2) {
-                            $total = 0;
-                        }
 
                         $extras = $record->Extras;
                         foreach ($extras as $ext) {
                             $total += $ext->total;
                         }
-                        return view('filament.pages.sales.detail', ['sale' => $record, 'extras' => $record->Extras, 'time' => $time, 'total' => $total, 'priceTime' => $priceTime]);
+
+                        return view('filament.pages.sales.detail', ['sale' => $record, 'extras' => $record->Extras, 'total' => $total]);
                     })
                     ->modalSubmitActionLabel('Pagado')
                     ->action(function ($record) {
-                        $total = 0;
-
-                        $extras = $record->Extras;
-                        foreach ($extras as $ext) {
-                            $total += $ext->total;
-                        }
-
-                        $day = getDay();
-                        $day->total += $total;
-                        $day->save();
-                        Extra::where('sale_id', $record->id)->delete();
-
-                        $this->customNotification('success', 'Éxito', 'La venta se finalizó correctamente.');
-                        $this->dispatch('deleteSale', id: $record->id);
+                        $this->endSale($record);
                         $this->resetTable();
-                    })
+                    }),
+                DeleteAction::make('delete')
+                    ->hiddenLabel()
+                    ->tooltip('Eliminar venta')
+                    ->icon('heroicon-o-trash')
+                    ->color('danger')
+                    ->size('xl')
+                    ->requiresConfirmation(false)
+                    ->visible(fn($record) => $this->calculateTotal($record) == '$0')
             ])
         ;
     }
@@ -125,5 +110,61 @@ class GeneralSalesTable extends Component implements HasForms, HasTable
     public function render()
     {
         return view('livewire.general-sales-table');
+    }
+
+    public function addExtraAction()
+    {
+        return ActionsAction::make('addExtra')
+            ->hiddenLabel()
+            ->icon('heroicon-o-plus')
+            ->color('success')
+            ->outlined()
+            ->modalHeading('Agregar producto')
+            ->modalSubmitActionLabel('Agregar')
+            ->form([
+                Grid::make(3)->schema([
+                    Select::make('product_id')
+                        ->label('Producto')
+                        ->placeholder('Seleccione un producto')
+                        ->columnSpan(2)->required()->searchable()
+                        ->options(
+                            Product::where('is_activated', 1)->get()->mapWithKeys(function ($product) {
+                                return [
+                                    $product->id => "{$product->sku} - {$product->name} ($" . $product->amount . ")",
+                                ];
+                            })
+                        )
+                        ->getSearchResultsUsing(function (string $search) {
+                            return Product::query()->where('name', 'like', "%{$search}%")->orWhere('sku', 'like', "%{$search}%")
+                                ->get()->mapWithKeys(fn($product) => [
+                                    $product->id => "{$product->sku} - {$product->name} ($" . $product->saleprice . ")",
+                                ]);
+                        }),
+                    TextInput::make('amount')->label('Cantidad')
+                        ->numeric()->default(1)->minValue(1)->required(),
+                ])
+            ])
+            ->action(function ($arguments, array $data) {
+                $saleId = $arguments['saleId'];
+                $product = $this->getProductActive($data['product_id']);
+                if (is_null($product)) {
+                    return $this->customNotification('error', 'Error', 'El producto no existe.');
+                }
+
+                if ($product->amount < $data['amount']) {
+                    return $this->customNotification('error', 'Error', 'El producto no tiene la cantidad suficiente.');
+                }
+
+                $amount = round($data['amount']);
+                if ($product->amount < $amount) {
+                    return $this->customNotification('error', 'Error', 'No existe la cantidad solicitada en el inventario');
+                }
+
+                $this->discount($product, $amount);
+                $this->addExtra($saleId, $product, $amount);
+
+                $this->dispatch('update-table');
+                $this->customNotification('success', 'Exito', "Se agregó {$data['amount']} de {$product->name} correctamente.");
+            });
     }
 }

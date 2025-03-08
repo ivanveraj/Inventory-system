@@ -11,9 +11,9 @@ class RecentSalesTable extends BaseWidget
     public function table(Table $table): Table
     {
         return $table
-            ->query(
+            /* ->query(
                 // ...
-            )
+            ) */
             ->columns([
                 // ...
             ]);

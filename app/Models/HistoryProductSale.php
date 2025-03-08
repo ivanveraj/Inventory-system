@@ -8,14 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 class HistoryProductSale extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'history_sale',
         'product_id',
         'amount',
         'price'
     ];
-    public function Product()
+    public function product()
     {
-        return $this->belongsTo(Product::class, 'product_id'); 
+        return $this->belongsTo(Product::class, 'product_id');
+    }
+
+    public function sale()
+    {
+        return $this->belongsTo(HistorySale::class, 'history_sale');
     }
 }

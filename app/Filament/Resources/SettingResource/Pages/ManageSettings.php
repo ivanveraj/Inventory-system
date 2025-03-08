@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\GlobalSettingsResource\Pages;
+namespace App\Filament\Resources\SettingResource\Pages;
 
 use App\Filament\Resources\SettingResource;
 use Filament\Resources\Pages\ManageRecords;
