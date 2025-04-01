@@ -18,7 +18,7 @@ class SalesStats extends BaseWidget
     {
         return 4;
     }
-    
+
     public function getStats(): array
     {
         $currentDay = getDayCurrent();
@@ -33,7 +33,7 @@ class SalesStats extends BaseWidget
         $currentTValueTable = $this->getTotalTimeRevenue($currentDay);
         $revenueFromProducts = $currentSales - $currentTValueTable;
 
-        $lastDay=getLastDay();
+        $lastDay = getLastDay();
         $lastDaySales = $lastDay ? $lastDay->total : 0;
 
         return [
@@ -88,14 +88,6 @@ class SalesStats extends BaseWidget
             return 0;
         }
 
-        $priceTime = $this->getSetting('PrecioXHora');
-        $historyTables = $this->getHistoryTables($day->id);
-        $totalTimeRevenue = 0;
-
-        foreach ($historyTables as $historyT) {
-            $totalTimeRevenue += round(($priceTime / 60) * $historyT->time);
-        }
-
-        return $totalTimeRevenue;
+        return $this->getHistoryTables($day->id)->sum('total');
     }
 }

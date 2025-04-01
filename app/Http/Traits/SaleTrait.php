@@ -7,6 +7,7 @@ use App\Models\Extra;
 use App\Models\ExtraHasHistoryProduct;
 use App\Models\SaleTable;
 use App\Models\Table;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -122,7 +123,7 @@ trait SaleTrait
         $total = 0;
         if ($sale->type == 1 && !is_null($sale->start_time)) {
             $time = DateDifference(date('Y-m-d H:i:s'), $sale->start_time);
-            $total = ($time < $this->getSetting('TiempoMinimo')) ? $this->getSetting('PrecioMinimo') : round(($this->getSetting('PrecioXHora') / 60) * $time);
+            $total = ($time < $this->getSetting('TiempoMinimo')) ? $this->getSetting('PrecioMinimo') : round(($this->getPrecioActual() / 60) * $time);
         }
 
         foreach ($this->getExtrasSale($sale->id) as $extra) {
@@ -162,7 +163,7 @@ trait SaleTrait
                 $total = $this->getSetting('PrecioMinimo');
                 $time = $TiempoMinimo;
             } else {
-                $total = round(($this->getSetting('PrecioXHora') / 60) * $time);
+                $total = round(($this->getPrecioActual() / 60) * $time);
             }
 
             $priceTime = $total;
@@ -192,12 +193,21 @@ trait SaleTrait
         // Eliminar la venta y registrar historial de mesas si aplica
         if ($sale->type == 1) {
             $this->deleteSaleAllTable($sale);
-            $this->addTimeHistoryTable($day->id, $sale->table_id, $time);
+            $this->addTimeHistoryTable($day->id, $sale->table_id, $time, $priceTime);
         } else {
             $this->deleteSaleAll($sale);
         }
 
         // Notificar el éxito de la operación
         $this->customNotification('success', 'Éxito', 'La venta se finalizó correctamente.');
+    }
+
+    public function getPrecioActual()
+    {
+        $now = Carbon::now()->format('H:i:s');
+
+        $horaCambio = $this->getSetting('HoraCambio');
+
+        return $this->getSetting($now >= $horaCambio ? 'PrecioHoraPrincipal' : 'PrecioHoraSecundario');
     }
 }

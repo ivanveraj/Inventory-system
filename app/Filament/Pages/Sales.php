@@ -40,7 +40,7 @@ class Sales extends Page implements HasTable, HasForms
         $this->day = getExistDay();
         $this->minPrice = $this->getSetting('PrecioMinimo');
         $this->minTime = $this->getSetting('TiempoMinimo');
-        $this->priceXHour = $this->getSetting('PrecioMinimo');
+        $this->priceXHour = $this->getPrecioActual();
     }
 
     protected function getHeaderActions(): array
@@ -167,13 +167,11 @@ class Sales extends Page implements HasTable, HasForms
                         $time = "";
 
                         if (!is_null($record->start_time)) {
-                            $TiempoMinimo = $this->getSetting('TiempoMinimo');
                             $time = DateDifference(date('Y-m-d H:i:s'), $record->start_time);
-                            if ($time < $TiempoMinimo) {
-                                $total = $this->getSetting('PrecioMinimo');
+                            if ($time < $this->minTime) {
+                                $total = $this->minPrice;
                             } else {
-                                $PrecioXHora = $this->getSetting('PrecioXHora');
-                                $total = round(($PrecioXHora / 60) * $time);
+                                $total = round(($this->priceXHour / 60) * $time);
                             }
                             $priceTime = $total;
                         }

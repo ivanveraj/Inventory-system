@@ -51,11 +51,11 @@ class SaleController extends Controller
     //Ventas mesas
     public function tablesSales()
     {
-        $sales = $this->getSalesType(1);
+       /*  $sales = $this->getSalesType(1);
         $TiempoMinimo = $this->getSetting('TiempoMinimo');
         $PrecioXHora = $this->getSetting('PrecioXHora');
         $PrecioMinimo = $this->getSetting('PrecioMinimo');
-        return view('sales.tables_sales', compact('sales', 'TiempoMinimo', 'PrecioXHora', 'PrecioMinimo'));
+        return view('sales.tables_sales', compact('sales', 'TiempoMinimo', 'PrecioXHora', 'PrecioMinimo')); */
     }
 
     //Ventas generales
@@ -422,7 +422,7 @@ class SaleController extends Controller
 
         if ($sale->type == 1) {
             $this->deleteSaleAllTable($sale);
-            $this->addTimeHistoryTable($day->id, $sale->table_id, $time);
+            $this->addTimeHistoryTable($day->id, $sale->table_id, $time, $priceTime);
         } else {
             $this->deleteSaleAll($sale);
         }

@@ -28,14 +28,18 @@ trait TableTrait
             'state' => 1
         ]);
     }
-    public function addTimeHistoryTable($day_id, $table_id, $time)
+    public function addTimeHistoryTable($day_id, $table_id, $time, $total)
     {
-        $updated = HistoryTable::where('day_id', $day_id)->where('table_id', $table_id)->increment('time', $time);
-        if (!$updated) {
+        $history = HistoryTable::where('day_id', $day_id)->where('table_id', $table_id)->first();
+        if ($history) {
+            $history->increment('time', $time);
+            $history->increment('total', $total);
+        } else {
             HistoryTable::create([
                 'day_id' => $day_id,
                 'table_id' => $table_id,
-                'time' => $time
+                'time' => $time,
+                'total' => $total
             ]);
         }
     }

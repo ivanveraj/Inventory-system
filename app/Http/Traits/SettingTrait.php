@@ -16,10 +16,9 @@ trait SettingTrait
     }
     public function addSetting($group, $key, $value)
     {
-        return Setting::create([
-            'group' => $group,
-            'key' => $key,
-            'value' =>  $value
-        ]);
+        return Setting::updateOrCreate(
+            ['group' => $group, 'key' => $key], // Criterios de búsqueda
+            ['value' => $value] // Valores a actualizar o insertar
+        );
     }
 }
