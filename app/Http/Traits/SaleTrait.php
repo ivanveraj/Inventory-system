@@ -204,10 +204,16 @@ trait SaleTrait
 
     public function getPrecioActual()
     {
-        $now = Carbon::now()->format('H:i:s');
-
-        $horaCambio = $this->getSetting('HoraCambio');
-
-        return $this->getSetting($now >= $horaCambio ? 'PrecioHoraPrincipal' : 'PrecioHoraSecundario');
+        $now = Carbon::now();
+        $horaCambio = Carbon::createFromFormat('H:i:s', $this->getSetting('HoraCambio'));
+        $inicioDia = Carbon::createFromTime(7, 0, 0); // 7:00 AM
+        
+        // Si estamos entre HoraCambio y 7:00 AM, aplicamos el precio principal
+        if ($now->between($horaCambio, $inicioDia)) {
+            return $this->getSetting('PrecioHoraPrincipal');
+        }
+        
+        // Si estamos entre 7:00 AM y HoraCambio, aplicamos el precio secundario
+        return $this->getSetting('PrecioHoraSecundario');
     }
 }
