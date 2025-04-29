@@ -179,7 +179,7 @@ trait SaleTrait
             $this->createHistoryProductSale($historySale->id, $extra->product_id, $extra->amount, $extra->product->saleprice);
         }
 
-        $profit += $total;
+        $profit += $priceTime;
 
         // Actualizar las ganancias del día
         $day = getDay();
@@ -207,13 +207,20 @@ trait SaleTrait
         $now = Carbon::now();
         $horaCambio = Carbon::createFromFormat('H:i:s', $this->getSetting('HoraCambio'));
         $inicioDia = Carbon::createFromTime(7, 0, 0); // 7:00 AM
-        
-        // Si estamos entre HoraCambio y 7:00 AM, aplicamos el precio principal
-        if ($now->between($horaCambio, $inicioDia)) {
-            return $this->getSetting('PrecioHoraPrincipal');
+
+        if ($horaCambio->gt($inicioDia)) {
+            // Rango cruza medianoche: de horaCambio (ej. 16:00) hasta 07:00 del día siguiente
+            if ($now->gte($horaCambio) || $now->lt($inicioDia)) {
+                return $this->getSetting('PrecioHoraPrincipal'); // $7200
+            }
+        } else {
+            // Rango normal: de horaCambio a inicioDia dentro del mismo día
+            if ($now->between($horaCambio, $inicioDia)) {
+                return $this->getSetting('PrecioHoraPrincipal'); // $7200
+            }
         }
-        
-        // Si estamos entre 7:00 AM y HoraCambio, aplicamos el precio secundario
-        return $this->getSetting('PrecioHoraSecundario');
+
+        // En todos los demás casos, aplicar precio secundario
+        return $this->getSetting('PrecioHoraSecundario'); // $3000
     }
 }

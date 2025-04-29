@@ -105,7 +105,10 @@ function getDayCurrent()
 {
     return Day::whereNull('finish_day')->orderBy('created_at', 'DESC')->first();
 }
-function getLastDay()
+function getLastDay($currentDay)
 {
-    return Day::whereNotNull('created_at')->orderBy('created_at', 'desc')->first();
+    return Day::where('id', '!=', $currentDay->id)
+              ->whereNotNull('created_at')
+              ->orderBy('created_at', 'desc')
+              ->first();
 }

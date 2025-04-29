@@ -33,7 +33,7 @@ class SalesStats extends BaseWidget
         $currentTValueTable = $this->getTotalTimeRevenue($currentDay);
         $revenueFromProducts = $currentSales - $currentTValueTable;
 
-        $lastDay = getLastDay();
+        $lastDay = getLastDay($currentDay);
         $lastDaySales = $lastDay ? $lastDay->total : 0;
 
         return [
