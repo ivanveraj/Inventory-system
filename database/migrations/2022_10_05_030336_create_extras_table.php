@@ -17,12 +17,12 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('sale_id');
             $table->foreign('sale_id')->references('id')->on('sale_tables');
-            $table->text('name');
             $table->unsignedBigInteger('product_id');
             $table->foreign('product_id')->references('id')->on('products');
-            $table->unsignedBigInteger('history_p');
-            $table->foreign('history_p')->references('id')->on('history_products');
+            $table->string('name');
+            $table->double('price');
             $table->integer('amount');
+            $table->double('total');
             $table->timestamps();
         });
     }

@@ -24,18 +24,12 @@ use Illuminate\Support\Facades\Route;
     return view('layouts.admin.base');
 }); */
 
-Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
+/* Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
 
     Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboard');
-    Route::get('getDataSales', [DashboardController::class, 'getDataSales'])->name('getDataSales');
-
-    Route::group(['prefix' => 'users'], function () {
-        Route::get('index', [UserController::class, 'index'])->name('users.index')->middleware('ProtectRoutes:2');
-        Route::get('list', [UserController::class, 'list'])->name('users.list')->middleware('ProtectRoutes:2');
         Route::get('create', [UserController::class, 'create'])->name('user.create')->middleware('ProtectRoutes:2');
         Route::post('store', [UserController::class, 'store'])->name('user.store')->middleware('ProtectRoutes:2');
         Route::get('show/{id?}', [UserController::class, 'show'])->name('user.show')->middleware('ProtectRoutes:2');
-        Route::post('update', [UserController::class, 'update'])->name('user.update')->middleware('ProtectRoutes:2');
         Route::post('archive', [UserController::class, 'archive'])->name('user.archive')->middleware('ProtectRoutes:2');
         Route::get('assign/{id_user?}', [UserController::class, 'assignRol'])->name('user.assign_rol')->middleware('ProtectRoutes:2');
         Route::post('changeRol', [UserController::class, 'changeRol'])->name('user.change_rol')->middleware('ProtectRoutes:2');
@@ -112,4 +106,4 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/', [SettingsController::class, 'index'])->name('settings.index')->middleware('ProtectRoutes:1');
         Route::post('general', [SettingsController::class, 'general'])->name('settings.general')->middleware('ProtectRoutes:1');
     });
-});
+}); */

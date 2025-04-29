@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\ProductCategory;
 use App\Http\Traits\ProductTrait;
 use App\Models\Product;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -17,37 +18,62 @@ class ProductSeeder extends Seeder
      */
     public function run()
     {
-        $this->createProduct2('CB', 'Club Colombia | Budweiser | Stella | Heineken', 3200,  100,30);
-        $this->createProduct2('CV', 'Poker', 3200,  100,30,30);
-        $this->createProduct2('COR', 'Coronita', 3200,  100,30,30);
-        $this->createProduct2('CR', 'Corona', 3200,  100,30,30);
-        $this->createProduct2('AL', 'Aguila Light | Negra', 3200,  100,30,30);
-        $this->createProduct2('RM', 'Ron Media', 3200,  100,30);
-        $this->createProduct2('RL', 'Ron Litro', 3200,  100,30);
-        $this->createProduct2('RG', 'Ron Gafarra', 3200,  100,30);
-        $this->createProduct2('AGM', 'Aguardiente Media', 3200,  100,30);
-        $this->createProduct2('AGL', 'Aguardiente Litro', 3200,  100,30);
-        $this->createProduct2('AGG', 'Aguardiente Garrafa', 3200,  100,30);
-        $this->createProduct2('HT', 'Jugo Hit', 3200,  100,30);
-        $this->createProduct2('HG', 'Hit Litro', 3200,  100,30);
-        $this->createProduct2('GT', 'Gatorade | Squash', 3200,  100,30);
-        $this->createProduct2('RB', 'Red Bull', 3200,  100,30);
-        $this->createProduct2('FL', 'Four Loko', 3200,  100,30);
-        $this->createProduct2('SD', 'Soda', 3200,  100,30);
-        $this->createProduct2('CG', 'Cigarrillo', 3200,  100,30);
-        $this->createProduct2('CP', 'Cola & Pola', 3200,  100,30);
-        $this->createProduct2('AU', 'Agua Grande', 3200,  100,30);
-        $this->createProduct2('PN', 'Pony Malta', 3200,  100,30);
-        $this->createProduct2('GS', 'Gaseosas', 3200,  100,30);
-        $this->createProduct2('PG', 'Detodito | Choclito | Dorito G', 3200,  100,30);
-        $this->createProduct2('PM', 'Detodito | Dorito Med', 3200,  100,30);
-        $this->createProduct2('PP', 'Detodito | Dorito Peq', 3200,  100,30);
-        $this->createProduct2('MA', 'Margarita Pollo-Limon-Dorito', 3200,  100,30);
-        $this->createProduct2('CHE', 'Cheetos-Choclitos-| Boliqueso', 3200,  100,30);
-        $this->createProduct2('MM', 'Mani moto', 3200,  100,30);
-        $this->createProduct2('TD', 'Trident', 3200,  100,30);
-        $this->createProduct2('BB', 'Bom Bom Bum', 3200,  100,30);
-        $this->createProduct2('HS', 'Halls', 3200,  100,30);
-        $this->createProduct2('GY', 'Guantes', 3200,  100,30);
+        $products = [
+            ['CB', 'Club Colombia | Budweiser | Stella | Heineken', ProductCategory::CERVEZA],
+            ['CV', 'Poker', ProductCategory::CERVEZA],
+            ['COR', 'Coronita', ProductCategory::CERVEZA],
+            ['CR', 'Corona', ProductCategory::CERVEZA],
+            ['AL', 'Aguila Light | Negra', ProductCategory::CERVEZA],
+
+            ['RM', 'Ron Media', ProductCategory::LICOR],
+            ['RL', 'Ron Litro', ProductCategory::LICOR],
+            ['RG', 'Ron Gafarra', ProductCategory::LICOR],
+            ['AGM', 'Aguardiente Media', ProductCategory::LICOR],
+            ['AGL', 'Aguardiente Litro', ProductCategory::LICOR],
+            ['AGG', 'Aguardiente Garrafa', ProductCategory::LICOR],
+
+            ['HT', 'Jugo Hit', ProductCategory::BEBIDA],
+            ['HG', 'Hit Litro', ProductCategory::BEBIDA],
+            ['GT', 'Gatorade | Squash', ProductCategory::BEBIDA],
+            ['RB', 'Red Bull', ProductCategory::BEBIDA],
+            ['FL', 'Four Loko', ProductCategory::BEBIDA],
+            ['SD', 'Soda', ProductCategory::BEBIDA],
+            ['AU', 'Agua Grande', ProductCategory::BEBIDA],
+            ['PN', 'Pony Malta', ProductCategory::BEBIDA],
+            ['GS', 'Gaseosas', ProductCategory::BEBIDA],
+            ['CG', 'Cigarrillo', ProductCategory::OTROS],
+            ['CP', 'Cola & Pola', ProductCategory::OTROS],
+            ['PG', 'Detodito | Choclito | Dorito G', ProductCategory::MECATO],
+            ['PM', 'Detodito | Dorito Med', ProductCategory::MECATO],
+            ['PP', 'Detodito | Dorito Peq', ProductCategory::MECATO],
+            ['MA', 'Margarita Pollo-Limon-Dorito', ProductCategory::MECATO],
+            ['CHE', 'Cheetos-Choclitos-| Boliqueso', ProductCategory::MECATO],
+            ['MM', 'Mani moto', ProductCategory::MECATO],
+            ['TD', 'Trident', ProductCategory::MECATO],
+            ['BB', 'Bom Bom Bum', ProductCategory::MECATO],
+            ['HS', 'Halls', ProductCategory::MECATO],
+
+            ['GY', 'Guantes', ProductCategory::OTROS],
+        ];
+
+        foreach ($products as $product) {
+            Product::create([
+                'sku' => $product[0],
+                'name' => $product[1],
+                'description' => null,
+                'category' => $product[2], // Ahora usa el enum correcto
+                'barcode' => null,
+                'keywords' => strtolower($product[1]),
+                'buyprice' => 3200,
+                'saleprice' => 4000,
+                'amount' => 100,
+                'discount' => 0,
+                'discount_to' => null,
+                'iva' => 0,
+                'is_activated' => true,
+                'has_stock_alert' => false,
+                'min_stock_alert' => 10
+            ]);
+        }
     }
 }

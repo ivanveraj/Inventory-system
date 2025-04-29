@@ -14,15 +14,14 @@ class SaleTable extends Model
         'type',
         'client'
     ];
-    
     protected $dates = [
         'start_time',
     ];
-    public function Table()
+    public function table()
     {
         return $this->belongsTo(Table::class, 'table_id');
     }
-    public function Extras()
+    public function extras()
     {
         return $this->hasMany(Extra::class, 'sale_id');
     }

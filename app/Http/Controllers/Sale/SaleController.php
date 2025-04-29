@@ -3,12 +3,10 @@
 namespace App\Http\Controllers\Sale;
 
 use App\Http\Controllers\Controller;
-use App\Http\Traits\GeneralTrait;
 use App\Http\Traits\ProductTrait;
 use App\Http\Traits\SaleTrait;
 use App\Http\Traits\SettingTrait;
 use App\Http\Traits\TableTrait;
-use App\Models\HistoryProduct;
 use App\Models\HistoryProductSale;
 use App\Models\HistorySale;
 use App\Models\Product;
@@ -16,13 +14,13 @@ use App\Models\SaleTable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 
 class SaleController extends Controller
 {
-    use TableTrait, SaleTrait, ProductTrait, SettingTrait, GeneralTrait;
+    use TableTrait, SaleTrait, ProductTrait, SettingTrait;
     public function finishDay()
     {
+
         $sales = SaleTable::where('type', 1)->get();
         foreach ($sales as $sale) {
             if (!is_null($sale->start_time)) {
@@ -53,52 +51,17 @@ class SaleController extends Controller
     //Ventas mesas
     public function tablesSales()
     {
-        $sales = $this->getSalesType(1);
-        foreach ($sales as $sale) {
-            $arrayE = [];
-            $total = 0;
-            $extras = DB::table('extras')->select('extras.*', 'products.name', 'products.saleprice')
-                ->leftJoin('products', 'extras.product_id', '=', 'products.id')
-                ->where('sale_id', $sale->id)->get();
-            foreach ($extras as $extra) {
-                $total += $extra->saleprice * $extra->amount;
-                if (isset($arrayE[$extra->product_id])) {
-                    $arrayE[$extra->product_id]['amount'] += $extra->amount;
-                } else {
-                    $arrayE[$extra->product_id] = ['product_id' => $extra->product_id, 'extra_id' => $extra->id, 'name' => $extra->name, 'amount' => $extra->amount, 'price' => $extra->saleprice];
-                }
-            }
-            $sale->ArrayExtras = $arrayE;
-            $sale->total = $total;
-        }
-
+       /*  $sales = $this->getSalesType(1);
         $TiempoMinimo = $this->getSetting('TiempoMinimo');
         $PrecioXHora = $this->getSetting('PrecioXHora');
         $PrecioMinimo = $this->getSetting('PrecioMinimo');
-        return view('sales.tables_sales', compact('sales', 'TiempoMinimo', 'PrecioXHora', 'PrecioMinimo'));
+        return view('sales.tables_sales', compact('sales', 'TiempoMinimo', 'PrecioXHora', 'PrecioMinimo')); */
     }
 
     //Ventas generales
     public function generalSale()
     {
         $general = $this->getSalesType(2);
-        foreach ($general as $sale) {
-            $arrayE = [];
-            $total = 0;
-            $extras = DB::table('extras')->select('extras.*', 'products.name', 'products.saleprice')
-                ->leftJoin('products', 'extras.product_id', '=', 'products.id')
-                ->where('sale_id', $sale->id)->get();
-            foreach ($extras as $extra) {
-                $total += $extra->saleprice * $extra->amount;
-                if (isset($arrayE[$extra->product_id])) {
-                    $arrayE[$extra->product_id]['amount'] += $extra->amount;
-                } else {
-                    $arrayE[$extra->product_id] = ['product_id' => $extra->product_id, 'extra_id' => $extra->id, 'name' => $extra->name, 'amount' => $extra->amount, 'price' => $extra->saleprice];
-                }
-            }
-            $sale->ArrayExtras = $arrayE;
-            $sale->total = $total;
-        }
         return view('sales.general_sales', compact('general'));
     }
 
@@ -112,24 +75,22 @@ class SaleController extends Controller
     {
         $rq->validate([
             'sale_id' => 'required',
+            'product_id' => 'required',
+            'amount' => 'required|integer|min:1'
         ]);
-
-        $sale = $this->getSale($rq->sale_id);
-        if (is_null($sale)) {
-            return AccionIncorrecta('', 'No existe o se encuentra inactiva la venta');
-        }
 
         $product = $this->getProduct($rq->product_id);
         if (is_null($product)) {
-            return AccionIncorrecta('', 'No existe o se encuentra inactivo el producto');
+            return AccionIncorrecta('', '');
+        }
+
+        $sale = $this->getSale($rq->sale_id);
+        if (is_null($sale)) {
+            return AccionIncorrecta('', '');
         }
 
         if ($product->state != 1) {
             return AccionIncorrecta('', 'No existe o se encuentra inactivo el producto');
-        }
-
-        if ($rq->amount < 1) {
-            return AccionIncorrecta('', 'La cantidad debe ser mayor a 0');
         }
 
         $amount = round($rq->amount);
@@ -137,7 +98,9 @@ class SaleController extends Controller
             return AccionIncorrecta('', 'No existe la cantidad solicitada en el inventario');
         }
 
+
         $this->discount($sale->id, $product, $amount);
+
 
         return AccionCorrecta('', '');
     }
@@ -159,7 +122,6 @@ class SaleController extends Controller
         }
         return response()->json($array);
     }
-
     public function startTime(Request $rq)
     {
         $sale = $this->getSale($rq->sale_id);
@@ -460,7 +422,7 @@ class SaleController extends Controller
 
         if ($sale->type == 1) {
             $this->deleteSaleAllTable($sale);
-            $this->addTimeHistoryTable($day->id, $sale->table_id, $time);
+            $this->addTimeHistoryTable($day->id, $sale->table_id, $time, $priceTime);
         } else {
             $this->deleteSaleAll($sale);
         }

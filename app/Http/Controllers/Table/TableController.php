@@ -19,16 +19,19 @@ class TableController extends Controller
 
     public function list(Request $rq)
     {
-        $tables = Table::orderBy('id', 'asc')->get();
-
+        if ($rq->active == 0) {
+            $tables = Table::where('state', 1)->get();
+        } else {
+            $tables = Table::all();
+        }
         return DataTables::of($tables)
             ->addColumn('name', function ($table) {
-                return '<span class="text-base">' . $table->name . '</span>';
+                return $table->name;
             })
             ->addColumn('state', function ($table) {
                 $state = $table->state == 1 ? '<span
-                class="badge rounded-pill bg-success" style="font-size:14px">Activo</span>' : '<span
-                class="badge rounded-pill bg-danger" style="font-size:14px">Inactivo</span>';
+                class="badge rounded-pill bg-success">Activo</span>' : '<span
+                class="badge rounded-pill bg-danger">Inactivo</span>';
                 return $state;
             })
             ->addColumn('actions', function ($table) {

@@ -4,9 +4,8 @@ use App\Models\Day;
 use App\Models\HistoryTable;
 use App\Models\Rol;
 use App\Models\RolHasPermission;
-use App\Models\User;
-use App\Http\Traits\TableTrait;
 use App\Models\Table;
+use App\Models\User;
 
 function validatePermission(User $user, $id_permission)
 {
@@ -66,7 +65,7 @@ function completeNameUser($user)
 function formatMoney($num)
 {
     $num = doubleval($num);
-    return number_format($num);
+    return '$' . number_format($num, 0);
 }
 
 function DateDifference($date1, $date2)
@@ -106,7 +105,10 @@ function getDayCurrent()
 {
     return Day::whereNull('finish_day')->orderBy('created_at', 'DESC')->first();
 }
-function getLastDay()
+function getLastDay($currentDay)
 {
-    return Day::whereNull('created_at', date('Y-m-d'))->first();
+    return Day::where('id', '!=', $currentDay->id)
+              ->whereNotNull('created_at')
+              ->orderBy('created_at', 'desc')
+              ->first();
 }

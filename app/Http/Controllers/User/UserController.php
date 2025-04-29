@@ -21,31 +21,36 @@ class UserController extends Controller
 
     public function list(Request $rq)
     {
-        $users = User::whereNotIn('rol_id', [1])->get();
+        if ($rq->active == 0) {
+            $users = User::where('state', 1)
+                ->whereNotIn('rol_id', [1])->get();
+        } else {
+            $users = User::whereNotIn('rol_id', [1])->get();
+        }
 
         return DataTables::of($users)
             ->addColumn('name', function ($user) {
-                return '<div class="flex justify-start">
+                return '<div class="flex justify-center">
                     <div class="mr-3">
-                        <img class="h-8 w-8 rounded-full object-cover borderBox" src="' . $user->profile_photo_url . '" >
+                        <img class="h-8 w-8 rounded-full object-cover" src="' . $user->profile_photo_url . '" >
                     </div>
-                    <div class="flex flex-col justify-center text-left">
-                        <h6 class="mb-0 text-sm">' . $user->name . '</h6>
-                        <p class="mb-0 text-xs">Usuario: ' . $user->user . '</p>
+                    <div class="flex flex-col justify-center">
+                        <h6 class="mb-0 leading-normal text-sm">' . $user->name . '</h6>
+                        <p class="mb-0 leading-tight text-xs text-slate-400">' . $user->email . '</p>
                     </div>
                 </div>';
             })
             ->addColumn('state', function ($user) {
                 $state = $user->state == 1 ? '  <span
-                class="badge rounded-pill bg-success" style="font-size:14px">Activo</span>' : ' <span
-                class="badge rounded-pill bg-danger" style="font-size:14px">Inactivo</span>';
+                class="badge rounded-pill bg-success">Activo</span>' : ' <span
+                class="badge rounded-pill bg-danger">Inactivo</span>';
                 return $state;
             })
             ->addColumn('rol', function ($user) {
                 $rol = $user->Rol;
                 return is_null($rol) ? 'Sin rol' : $rol->name;
             })
-            ->addColumn('actions', function ($user) {
+            ->addColumn('actions', function ($user){
                 $Edit = '<button onclick="edit(' . $user->id . ')" class="dropdown-item">Editar</button>';
                 $msj = $user->state == 1 ? 'Archivar' : 'Activar';
                 $Archive =  '<button onclick="archive(' . $user->id . ',' . $user->state . ')" class="dropdown-item">' . $msj . '</button>';
@@ -53,8 +58,8 @@ class UserController extends Controller
                 $dropdown = '
                     <div class="btn-group">
                         <div class="btn-group dropstart" role="group">
-                            <button type="button" class="btn bg-info text-white dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-ellipsis-v"></i>
+                            <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="visually-hidden">Toggle Dropstart</span>
                             </button>
                             <ul class="dropdown-menu">
                             ' . $Edit . '
@@ -77,18 +82,18 @@ class UserController extends Controller
     {
         $rq->validate([
             'name' => 'required',
-            'user' => 'required|unique:users,user',
+            'email' => 'required|email:rfc|unique:users,email',
             'password' => 'required',
             'passwordC' => 'required|same:password'
         ]);
 
         $user = User::create([
             'name' => $rq->name,
-            'rol_id' => 3,
+            'rol_id' => 2,
             'state' => 1,
-            'user' => $rq->user,
+            'email' => $rq->email,
             'password' => Hash::make($rq->password),
-            'remember_token' => time() . $rq->user,
+            'remember_token' => time() . $rq->number_doc,
         ]);
 
         return AccionCorrecta('', '');
@@ -108,7 +113,7 @@ class UserController extends Controller
         $rq->validate([
             'id' => 'required',
             'name' => 'required',
-            'user' => 'required'
+            'email' => 'required'
         ]);
 
         $user = $this->getUser($rq->id);
@@ -118,7 +123,7 @@ class UserController extends Controller
 
         $user->update([
             'name' => $rq->name,
-            'user' => $rq->user
+            'email' => $rq->email
         ]);
 
         return AccionCorrecta('', '');

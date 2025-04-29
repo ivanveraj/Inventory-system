@@ -12,8 +12,4 @@ class Table extends Model
         'name',
         'state'
     ];
-    public function Table()
-    {
-        return $this->hasMany(HistoryTable::class, 'id'); 
-    }
 }

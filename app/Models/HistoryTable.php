@@ -11,7 +11,8 @@ class HistoryTable extends Model
     protected $fillable = [
         'day_id',
         'table_id',
-        'time'
+        'time',
+        'total'
     ];
 
     public function Table()

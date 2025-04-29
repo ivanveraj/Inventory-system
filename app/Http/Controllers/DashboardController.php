@@ -14,7 +14,7 @@ class DashboardController extends Controller
     public function dashboard()
     {
         $salesTotal = $this->getSalesTotal();
-        $priceTime = $this->getSetting('PrecioXHora');
+        $priceTime = $this->getSetting('PrecioHoraPrincipal');
 
         $day = getDayCurrent();
         $historyTables = null;
