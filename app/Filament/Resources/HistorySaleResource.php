@@ -28,23 +28,20 @@ class HistorySaleResource extends Resource
             ->columns([
                 TextColumn::make('client')
                     ->label('Cliente')
-                    ->searchable(),
-                TextColumn::make('time')
-                    ->sortable()
-                    ->formatStateUsing(fn($state) => $state . ' min'),
-                TextColumn::make('price_time')
-                    ->sortable()
-                    ->formatStateUsing(fn($state) => formatMoney($state)),
-                TextColumn::make('user.name')
-                    ->label('Cajero')
-                    ->sortable(),
+                    ->searchable()->alignCenter(),
+                TextColumn::make('time')->label('Tiempo')
+                    ->sortable()->alignCenter()
+                    ->formatStateUsing(fn($state) => !$state ? '-' : $state . ' min'),
+                TextColumn::make('price_time')->label('$ Tiempo')
+                    ->sortable()->alignCenter()
+                    ->formatStateUsing(fn($state) => !$state ? '-' : formatMoney($state)),
+                TextColumn::make('user.name')->label('Cajero')
+                    ->sortable()->alignCenter(),
                 TextColumn::make('total')
-                    ->sortable()
+                    ->sortable()->alignCenter()
                     ->formatStateUsing(fn($state) => formatMoney($state)),
-                TextColumn::make('updated_at')
-                    ->label('Finalizado')
-                    ->dateTime()
-                    ->sortable(),
+                TextColumn::make('updated_at')->label('Finalizado')
+                    ->dateTime()->sortable()->alignCenter(),
             ])
             ->actions([
                 Action::make('show')
