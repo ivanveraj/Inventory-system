@@ -43,16 +43,16 @@ class ExtraTableColumn extends Component implements HasForms, HasActions
                         ->placeholder('Seleccione un producto')
                         ->columnSpan(2)->required()->searchable()
                         ->options(
-                            Product::where('is_activated', 1)->get()->mapWithKeys(function ($product) {
+                            Product::where('is_activated', 1)->where('amount','>',0)->get()->mapWithKeys(function ($product) {
                                 return [
-                                    $product->id => "{$product->sku} - {$product->name} ($" . $product->saleprice . ")",
+                                    $product->id => "{$product->sku} - {$product->name} (" . $product->amount . "U)",
                                 ];
                             })
                         )
                         ->getSearchResultsUsing(function (string $search) {
                             return Product::query()->where('name', 'like', "%{$search}%")->orWhere('sku', 'like', "%{$search}%")
                                 ->get()->mapWithKeys(fn($product) => [
-                                    $product->id => "{$product->sku} - {$product->name} ($" . $product->saleprice . ")",
+                                    $product->id => "{$product->sku} - {$product->name} (" . $product->amount . "U)",
                                 ]);
                         }),
                     TextInput::make('amount')->label('Cantidad')

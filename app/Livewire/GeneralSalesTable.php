@@ -7,6 +7,7 @@ use App\Http\Traits\ProductTrait;
 use App\Http\Traits\SaleTrait;
 use App\Models\SaleTable;
 use App\Models\Product;
+use App\Models\Extra;
 use App\Tables\Columns\ExtraTableColumn;
 use Filament\Actions\Action as ActionsAction;
 use Filament\Actions\Concerns\InteractsWithActions;
