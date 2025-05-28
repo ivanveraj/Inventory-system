@@ -28,13 +28,13 @@ class HistoryTableOverview extends BaseWidget
                 TextColumn::make('total')->label('$ Recaudado')->sortable()
                     ->formatStateUsing(fn($state) => formatMoney($state)),
                 TextColumn::make('Day.created_at')->label('Fecha')
-                    ->dateTime('d M Y H:i A')
+                    ->dateTime('d M Y H:i A')->sortable()
             ])
             ->filters([
                 SelectFilter::make('day_id')
-                    ->label('Filtrar por fecha')
+                    /* ->label('Filtrar por fecha')
                     ->relationship('Day', 'created_at')->preload()
-                    ->getOptionLabelFromRecordUsing(fn($record) => $record->created_at->format('d M Y'))
+                    ->getOptionLabelFromRecordUsing(fn($record) => $record->created_at->format('d M Y')) */
                     ->searchable(),
             ],FiltersLayout::AboveContent);
     }
