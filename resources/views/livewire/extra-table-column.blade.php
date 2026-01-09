@@ -1,6 +1,6 @@
 <div class="w-full">
     <div class="flex justify-end" style="padding-top:.5rem">
-        {{ $this->addExtraAction }}
+        {{-- {{ $this->addExtraAction }} --}}
     </div>
     @if (!empty($extras) && $extras->isNotEmpty())
         <table class="w-full align-top border-gray-700 text-gray-300 text-sm my-4">

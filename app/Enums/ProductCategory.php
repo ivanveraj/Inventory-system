@@ -19,7 +19,7 @@ enum ProductCategory: string implements HasLabel
         return match ($this) {
             self::CERVEZA => 'Cerveza',
             self::LICOR => 'Licor',
-            self::BEBIDA => 'Bebida',
+            self::BEBIDA => 'Bebidas',
             self::MECATO => 'Mecato',
             self::OTROS => 'Otros',
         };

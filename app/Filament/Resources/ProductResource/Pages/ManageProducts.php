@@ -3,9 +3,11 @@
 namespace App\Filament\Resources\ProductResource\Pages;
 
 use App\Filament\Resources\ProductResource;
-use Filament\Actions;
+use App\Filament\Widgets\InventoryStats;
 use Filament\Actions\CreateAction;
+use Filament\Actions\ExportAction;
 use Filament\Resources\Pages\ManageRecords;
+use App\Filament\Exports\ProductExporter;
 
 class ManageProducts extends ManageRecords
 {
@@ -14,9 +16,20 @@ class ManageProducts extends ManageRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make('create_product')
-                ->label('Añadir producto')
-                ->icon('heroicon-o-plus'),
+            CreateAction::make('create_product')->label('Añadir producto')
+                ->icon('heroicon-o-plus')->slideOver(),
+            ExportAction::make('export')
+                ->label('Exportar Inventario')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->color('success')
+                ->exporter(ProductExporter::class),
+        ];
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            InventoryStats::class,
         ];
     }
 }

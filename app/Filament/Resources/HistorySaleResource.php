@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use Filament\Actions\Action;
+use App\Filament\Resources\HistorySaleResource\Pages\ManageHistorySales;
 use App\Filament\Resources\HistorySaleResource\Pages;
 use App\Filament\Resources\HistorySaleResource\RelationManagers;
 use App\Models\HistorySale;
@@ -9,7 +11,6 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -18,7 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class HistorySaleResource extends Resource
 {
     protected static ?string $model = HistorySale::class;
-    protected static ?string $navigationIcon = 'heroicon-o-document-chart-bar';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-document-chart-bar';
     protected static ?string $label = 'Historial de ventas';
 
     public static function table(Table $table): Table
@@ -43,7 +44,7 @@ class HistorySaleResource extends Resource
                 TextColumn::make('updated_at')->label('Finalizado')
                     ->dateTime()->sortable()->alignCenter(),
             ])
-            ->actions([
+            ->recordActions([
                 Action::make('show')
                     ->label('Ver Detalle')
                     ->tooltip('Ver detalles de la venta')
@@ -69,7 +70,7 @@ class HistorySaleResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ManageHistorySales::route('/'),
+            'index' => ManageHistorySales::route('/'),
         ];
     }
 }

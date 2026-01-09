@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use Filament\Schemas\Components\Grid;
 use App\Http\Traits\NotificationTrait;
 use App\Http\Traits\ProductTrait;
 use App\Http\Traits\SaleTrait;
@@ -11,7 +12,6 @@ use App\Models\SaleTable;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
-use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -36,7 +36,7 @@ class ExtraTableColumn extends Component implements HasForms, HasActions
             ->modalHeading('Agregar producto')
             ->modalSubmitActionLabel('Agregar')
             ->hidden($this->saleId == null)
-            ->form([
+            ->schema([
                 Grid::make(3)->schema([
                     Select::make('product_id')
                         ->label('Producto')

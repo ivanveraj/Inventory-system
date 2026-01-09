@@ -9,17 +9,17 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
-        "awcodes/filament-table-repeater": "^3.1",
-        "filament/filament": "^3.2",
-        "filament/widgets": "^3.2",
+        "filament/filament": "^4.0",
+        "filament/widgets": "^4.0",
         "laravel/fortify": "*",
         "laravel/framework": "^11.9",
         "laravel/tinker": "^2.9",
-        "spatie/laravel-permission": "^6.9"
+        "spatie/laravel-permission": "^6.24"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.15",
         "fakerphp/faker": "^1.23",
+        "filament/upgrade": "^4.0",
         "laravel/pail": "^1.1",
         "laravel/pint": "^1.13",
         "laravel/sail": "^1.26",

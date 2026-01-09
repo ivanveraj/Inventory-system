@@ -33,7 +33,7 @@ class HistoryDayOverview extends BaseWidget
             ])
             ->filters([
                 Filter::make('created_at')
-                    ->form([
+                    ->schema([
                         DatePicker::make('created_from')->label('Desde'),
                         DatePicker::make('created_until')->label('Hasta'),
                     ])->columns(2)->columnSpan('full')

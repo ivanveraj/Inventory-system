@@ -16,7 +16,6 @@ use Filament\Actions\Action as ActionsAction;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
-use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -29,8 +28,8 @@ class Sales extends Page implements HasTable, HasForms
     use InteractsWithTable, InteractsWithForms;
     use SaleTrait, NotificationTrait, SettingTrait, GeneralTrait, TableTrait;
 
-    protected static ?string $navigationIcon = 'heroicon-s-currency-dollar';
-    protected static string $view = 'filament.pages.sales';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-s-currency-dollar';
+    protected string $view = 'filament.pages.sales';
     protected static ?string $title = 'Ventas';
 
     public $day, $minPrice, $minTime, $priceXHour;
@@ -125,8 +124,8 @@ class Sales extends Page implements HasTable, HasForms
                     ->formatStateUsing(fn($record) => $this->calculateTotal($record, $this->minPrice, $this->minTime, $this->priceXHour))
                     ->sortable(),
             ])
-            ->actions([
-                Action::make('startTime')
+            ->recordActions([
+                ActionsAction::make('startTime')
                     ->tooltip('Iniciar tiempo')
                     ->hiddenLabel()
                     ->icon('heroicon-o-play')
@@ -150,7 +149,7 @@ class Sales extends Page implements HasTable, HasForms
 
                         return self::customNotification('success', 'Éxito', 'El tiempo se inició correctamente.');
                     }),
-                Action::make('endTime')
+                ActionsAction::make('endTime')
                     ->hiddenLabel()
                     ->tooltip('Finalizar tiempo')
                     ->icon('heroicon-o-stop')
@@ -193,7 +192,7 @@ class Sales extends Page implements HasTable, HasForms
             ->emptyStateHeading('No hay un día activo')
             ->emptyStateDescription('Para iniciar las ventas, inicia un nuevo día.')
             ->emptyStateActions([
-                Action::make('startDay')
+                ActionsAction::make('startDay')
                     ->label('Iniciar Día')
                     ->icon('heroicon-o-calendar')
                     ->color('info')

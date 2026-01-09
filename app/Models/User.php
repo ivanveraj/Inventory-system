@@ -7,15 +7,18 @@ use Filament\Panel;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
-
 class User extends Authenticatable implements FilamentUser
 {
     use Notifiable, HasRoles;
+
     protected $fillable = [
         'name',
-        'email',
-        'state',
+        'username',
+        'phone_number',
+        'status',
         'password',
+        'email_verified_at',
+        'profile_photo_path',
     ];
 
     /**
@@ -38,19 +41,11 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'status' => 'boolean',
         ];
     }
 
-    /**
-     * The accessors to append to the model's array form.
-     *
-     * @var array
-     */
-    protected $appends = [
-        'profile_photo_url',
-    ];
-
-  /*   public function Rol()
+    /*   public function Rol()
     {
         return $this->belongsTo(Rol::class, 'rol_id');
     } */

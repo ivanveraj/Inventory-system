@@ -6,6 +6,8 @@ use App\Models\Rol;
 use App\Models\RolHasPermission;
 use App\Models\Table;
 use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 function validatePermission(User $user, $id_permission)
 {
@@ -62,10 +64,65 @@ function completeNameUser($user)
     return $user->name . ' ' . $user->surname;
 }
 
+function getDay()
+{
+    $day = Day::where('status', 'open')->orderBy('created_at', 'DESC')->first();
+    if (is_null($day)) {
+        $day = Day::create([
+            'total' => 0,
+            'profit' => 0,
+            'opening_balance' => 0,
+            'opened_at' => now(),
+            'opened_by' => Auth::id(),
+            'status' => 'open',
+            'cash_sales' => 0,
+            'card_sales' => 0,
+            'transfer_sales' => 0,
+            'total_sales' => 0,
+            'tables_total' => 0,
+            'products_total' => 0,
+            'expenses' => 0,
+            'withdrawals' => 0,
+            'cash_left_for_next_day' => 0,
+            'final_balance' => 0,
+        ]);
+        $tables = Table::where('state', 1)->orderBy('id', 'ASC')->get();
+        foreach ($tables as $table) {
+            HistoryTable::create(['day_id' => $day->id, 'table_id' => $table->id, 'time' => 0, 'total' => 0]);
+        }
+    }
+    return $day;
+}
+function getExistDay()
+{
+    $day = Day::where('status', 'open')->orderBy('created_at', 'DESC')->first();
+    if (is_null($day)) {
+        return false;
+    }
+    return true;
+}
+
+function getDayCurrent()
+{
+    return Day::where('status', 'open')->orderBy('created_at', 'DESC')->first();
+}
+
+function getLastDay($currentDay)
+{
+    return Day::where('id', '!=', $currentDay->id)
+        ->whereNotNull('created_at')
+        ->orderBy('created_at', 'desc')
+        ->first();
+}
+
 function formatMoney($num)
 {
-    $num = doubleval($num);
-    return '$' . number_format($num, 0);
+    return '$' . number_format($num);
+}
+
+function formatDate($date, $format = 'd/m/Y')
+{
+    return Carbon::parse($date)->translatedFormat($format);
 }
 
 function DateDifference($date1, $date2)
@@ -80,35 +137,44 @@ function DateDifferenceSeconds($date1, $date2)
     return $seconds;
 }
 
-function getDay()
-{
-    $day = Day::whereNull('finish_day')->orderBy('created_at', 'DESC')->first();
-    if (is_null($day)) {
-        $day = Day::create(['total' => 0, 'profit' => 0]);
-        $tables = Table::where('state', 1)->orderBy('id', 'ASC')->get();
-        foreach ($tables as $table) {
-            HistoryTable::create(['day_id' => $day->id, 'table_id' => $table->id, 'time' => 0]);
-        }
+if (!function_exists('getAdministrativeRoles')) {
+    function getAdministrativeRoles(): array
+    {
+        return ['Super Admin', 'Administrador', 'Recepcionista'];
     }
-    return $day;
-}
-function getExistDay()
-{
-    $day = Day::whereNull('finish_day')->orderBy('created_at', 'DESC')->first();
-    if (is_null($day)) {
-        return false;
-    }
-    return true;
 }
 
-function getDayCurrent()
-{
-    return Day::whereNull('finish_day')->orderBy('created_at', 'DESC')->first();
+if (!function_exists('hint_info_tooltip')) {
+    /**
+     * Crea un hintInfoTooltip con tooltip para componentes de Filament
+     *
+     * @param string $tooltip
+     * @return array
+     */
+    function hint_info_tooltip(string $tooltip): array
+    {
+        return [
+            'icon' => 'heroicon-o-information-circle',
+            'tooltip' => $tooltip,
+        ];
+    }
 }
-function getLastDay($currentDay)
-{
-    return Day::where('id', '!=', $currentDay->id)
-              ->whereNotNull('created_at')
-              ->orderBy('created_at', 'desc')
-              ->first();
-}
+
+// if (!function_exists('getDailyClosing')) {
+//     function getDay()
+//     {
+//         $dailyClosing = DailyClosing::where('date', today())->first();
+//         if (is_null($dailyClosing)) {
+//             return DailyClosing::create(['date' => today()]);
+//         }
+
+//         return $dailyClosing;
+//     }
+// }
+
+// if (!function_exists('getCategories')) {
+//     function getCategories()
+//     {
+//         return ServicesCategory::where('status', 1)->get();
+//     }
+// }

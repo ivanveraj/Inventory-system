@@ -2,38 +2,35 @@
 
 namespace App\Filament\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Actions\EditAction;
 use App\Filament\Resources\SettingResource\Pages\ManageSettings;
 use App\Models\Setting;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
+use Filament\Forms\Components\Textarea;
 use Filament\Resources\Resource;
-use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class SettingResource extends Resource
 {
     protected static ?string $model = Setting::class;
-    protected static ?string $navigationIcon = 'heroicon-s-cog';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-s-cog';
     protected static ?string $label = 'Configuraciones';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                TextInput::make('group')
-                    ->required()
-                    ->maxLength(255)
-                    ->readOnly()
-                    ->label('Group'),
-                TextInput::make('key')
-                    ->required()
-                    ->maxLength(255)
-                    ->readOnly()
-                    ->label('Key'),
-                TextInput::make('value')
-                    ->required()
-                    ->label('Value'),
+        return $schema
+            ->columns(3)
+            ->components([
+                TextInput::make('group')->label('Grupo')
+                    ->required()->maxLength(255)->readOnly(),
+                TextInput::make('key')->label('Configuración')
+                    ->required()->maxLength(255)->readOnly(),
+                TextInput::make('value')->label('Valor')
+                    ->required(),
+                Textarea::make('description')->label('Descripción')
+                    ->rows(3)->columnSpanFull(),
             ]);
     }
 
@@ -41,13 +38,22 @@ class SettingResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('group')->sortable()->searchable()->label('Group'),
-                TextColumn::make('key')->sortable()->searchable()->label('Key'),
-                TextColumn::make('value')->sortable()->label('Value'),
-                TextColumn::make('updated_at')->since()->label('Last Updated')
+                TextColumn::make('group')->label('Grupo')
+                    ->sortable()->searchable(),
+                TextColumn::make('key')->label('Configuración')
+                    ->sortable()->searchable(),
+                TextColumn::make('description')->label('Descripción')
+                    ->wrap()
+                    ->limit(50)
+                    ->tooltip(fn($record) => $record->description),
+                TextColumn::make('value')->label('Valor')
+                    ->sortable(),
+                TextColumn::make('updated_at')->label('Actualizado el')
+                    ->since()
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make('edit')->hiddenLabel()
+                    ->slideOver()
             ]);
     }
 

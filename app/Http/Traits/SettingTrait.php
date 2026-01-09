@@ -14,11 +14,11 @@ trait SettingTrait
         }
         return $setting->value;
     }
-    public function addSetting($group, $key, $value)
+    public function addSetting($group, $key, $value, $description = null)
     {
         return Setting::updateOrCreate(
             ['group' => $group, 'key' => $key], // Criterios de búsqueda
-            ['value' => $value] // Valores a actualizar o insertar
+            ['value' => $value, 'description' => $description] // Valores a actualizar o insertar
         );
     }
 }

@@ -16,18 +16,20 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        User::create([
+        $user = User::create([
             'name' => 'SuperAdmin',
             'username' => 'superadmin',
-            'state' => 1,
-            'password' => Hash::make('Jivjmmm08@')
-        ]);
-
-        User::create([
-            'name' => 'Francisco Parada',
-            'username' => 'superAdminLasVegas',
-            'state' => 1,
             'password' => Hash::make('Qazxcv08@')
         ]);
+
+        $user->assignRole('SuperAdmin');
+
+        $admin = User::create([
+            'name' => 'Administrador',
+            'username' => 'administrador.zona8',
+            'password' => Hash::make('Qazxcv08@')
+        ]);
+
+        $admin->assignRole('Administrador');
     }
 }

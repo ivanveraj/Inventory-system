@@ -2,6 +2,8 @@
 
 namespace App\Livewire;
 
+use Filament\Actions\DeleteAction;
+use Filament\Schemas\Components\Grid;
 use App\Http\Traits\NotificationTrait;
 use App\Http\Traits\ProductTrait;
 use App\Http\Traits\SaleTrait;
@@ -12,13 +14,10 @@ use App\Tables\Columns\ExtraTableColumn;
 use Filament\Actions\Action as ActionsAction;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
-use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Tables\Actions\Action;
-use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\TextInputColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -37,7 +36,7 @@ class GeneralSalesTable extends Component implements HasForms, HasTable, HasActi
         return $table
             ->query(SaleTable::query()->where('type', 2))
             ->headerActions([
-                Action::make('create')->label('Nueva venta')
+                ActionsAction::make('create')->label('Nueva venta')
                     ->icon('heroicon-s-plus')->color('primary')
                     ->action(function () {
                         $this->createSaleTable(null, null, 1, 2, null);
@@ -63,8 +62,8 @@ class GeneralSalesTable extends Component implements HasForms, HasTable, HasActi
                     ->extraCellAttributes(['class' => 'w-1/4']) // 25% del ancho
                     ->extraHeaderAttributes(['class' => 'w-1/4']),
             ])
-            ->actions([
-                Action::make('show')
+            ->recordActions([
+                ActionsAction::make('show')
                     ->hiddenLabel()
                     ->tooltip('Finalizar venta')
                     ->icon('heroicon-o-eye')
@@ -122,7 +121,7 @@ class GeneralSalesTable extends Component implements HasForms, HasTable, HasActi
             ->outlined()
             ->modalHeading('Agregar producto')
             ->modalSubmitActionLabel('Agregar')
-            ->form([
+            ->schema([
                 Grid::make(3)->schema([
                     Select::make('product_id')
                         ->label('Producto')

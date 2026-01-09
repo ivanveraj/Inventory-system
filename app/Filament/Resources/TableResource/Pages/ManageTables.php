@@ -19,7 +19,10 @@ class ManageTables extends ManageRecords
         return [
             CreateAction::make()->label('Añadir mesa')
                 ->icon('heroicon-o-plus')
-                ->outlined()
+                ->mutateDataUsing(function (array $data): array {
+                    $data['state'] = 1;
+                    return $data;
+                })
                 ->after(function ($record) {
                     $this->createSaleTable($record->id, null, 1, 1, null);
                 }),
