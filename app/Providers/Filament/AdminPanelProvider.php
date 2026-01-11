@@ -21,7 +21,6 @@ use App\Filament\Pages\Profile;
 use Filament\Navigation\NavigationBuilder;
 use Filament\Navigation\NavigationItem;
 use App\Filament\Pages\Dashboard;
-use App\Filament\Pages\DayDetail;
 use App\Filament\Pages\CashRegister;
 use App\Filament\Pages\Sales;
 use App\Filament\Resources\Roles\RoleResource;
@@ -30,7 +29,6 @@ use App\Filament\Resources\ProductResource;
 use Filament\Navigation\NavigationGroup;
 use App\Filament\Resources\SettingResource;
 use App\Filament\Resources\TableResource;
-use App\Filament\Resources\CashMovementResource;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -55,53 +53,14 @@ class AdminPanelProvider extends PanelProvider
                     NavigationItem::make('Caja')
                         ->url(fn() => CashRegister::getUrl())
                         ->icon('heroicon-o-banknotes'),
-                    // ->visible(fn() => auth()->user()->hasRole(getAdministrativeRoles())),
-                    // NavigationItem::make('Caja')
-                    //     ->url(fn(): string => Till::getUrl())
-                    //     ->icon('heroicon-o-banknotes')
-                    //     ->visible(fn() => auth()->user()->hasRole(getAdministrativeRoles())),
-                    // NavigationItem::make('Vende')
-                    //     ->url(fn(): string => Sales::getUrl())
-                    //     ->icon('heroicon-o-shopping-cart')
-                    //     ->visible(fn() => auth()->user()->hasRole(getAdministrativeRoles())),
-                    // NavigationItem::make('Agenda')
-                    //     ->url(fn(): string => Calendar::getUrl())
-                    //     ->icon('heroicon-o-calendar'),
-                    // NavigationItem::make('Pagos')
-                    //     ->url(fn() => ManagePayments::getUrl())
-                    //     ->icon('heroicon-o-credit-card')
-                    //     ->visible(fn() => !auth()->user()->hasRole(getAdministrativeRoles())),
+                    NavigationItem::make('Ventas')
+                        ->url(fn() => Sales::getUrl())
+                        ->icon('heroicon-o-shopping-cart'),
                 ])->groups([
-                    NavigationGroup::make()->label('Ventas y Reportes')
-                        ->items([
-                            NavigationItem::make('Caja')
-                                ->url(fn() => CashRegister::getUrl())
-                                ->icon('heroicon-o-banknotes'),
-                            NavigationItem::make('Ventas')
-                                ->url(fn() => Sales::getUrl())
-                                ->icon('heroicon-o-shopping-cart'),
-                            NavigationItem::make('Detalle del Día')
-                                ->url(fn() => DayDetail::getUrl())
-                                ->icon('heroicon-o-calendar'),
-                            NavigationItem::make('Movimientos de Caja')
-                                ->url(fn() => CashMovementResource::getUrl())
-                                ->icon('heroicon-o-arrow-path'),
-                        ]),
+
                     NavigationGroup::make()->label('Negocio')
                         ->icon('heroicon-o-rectangle-stack')
                         ->items([
-                            // NavigationItem::make('Mi Negocio')
-                            //     ->url(fn() => ComboResource::getUrl())
-                            //     ->visible(fn() => auth()->user()->hasRole(getAdministrativeRoles())),
-                            //NavigationItem::make('Servicios')
-                            //             ->url(fn() => ServiceResource::getUrl())
-                            //             ->visible(fn() => auth()->user()->hasRole(getAdministrativeRoles())),
-                            //         NavigationItem::make('Categorías')
-                            //             ->url(fn() => ServicesCategoryResource::getUrl())
-                            //             ->visible(fn() => auth()->user()->hasRole(getAdministrativeRoles())),
-                            //         NavigationItem::make('Productos')
-                            //             ->url(fn() => ProductResource::getUrl())
-                            //             ->visible(fn() => auth()->user()->hasRole(getAdministrativeRoles())),
                             NavigationItem::make('Proveedores')
                                 ->url(fn() => SupplierResource::getUrl()),
                             NavigationItem::make('Inventario')
@@ -110,23 +69,14 @@ class AdminPanelProvider extends PanelProvider
                                 ->url(fn() => SettingResource::getUrl()),
                             NavigationItem::make('Mesas')
                                 ->url(fn() => TableResource::getUrl()),
-                            //->visible(fn() => auth()->user()->hasRole(getAdministrativeRoles()))
                         ]),
                     NavigationGroup::make()->label('Usuarios')
                         ->icon('heroicon-o-user-group')
                         ->items([
                             NavigationItem::make('Usuarios')
                                 ->url(fn() => UserResource::getUrl()),
-                            //->visible(fn() => auth()->user()->hasRole(getAdministrativeRoles())),
-                            // NavigationItem::make('Colaboradores')
-                            //     ->url(fn() => StaffResource::getUrl()),
-                            //     //->visible(fn() => auth()->user()->hasRole(getAdministrativeRoles())),
-                            // NavigationItem::make('Clientes')
-                            //     ->url(fn() => CustomerResource::getUrl()),
-                            //     //->visible(fn() => auth()->user()->hasRole(getAdministrativeRoles())),
                             NavigationItem::make('Roles')
                                 ->url(fn() => RoleResource::getUrl())
-                            //->visible(fn() => auth()->user()->hasRole(getAdministrativeRoles())),
                         ]),
                 ]);
             })

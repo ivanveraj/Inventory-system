@@ -14,6 +14,12 @@ trait SettingTrait
         }
         return $setting->value;
     }
+
+    public function getSettings()
+    {
+        return Setting::pluck('value', 'key');
+    }
+
     public function addSetting($group, $key, $value, $description = null)
     {
         return Setting::updateOrCreate(

@@ -112,7 +112,7 @@ class GeneralSalesTable extends Component implements HasForms, HasTable, HasActi
         return view('livewire.general-sales-table');
     }
 
-    public function addExtraAction()
+    public function addExtraAction(): ActionsAction
     {
         return ActionsAction::make('addExtra')
             ->hiddenLabel()
@@ -130,7 +130,7 @@ class GeneralSalesTable extends Component implements HasForms, HasTable, HasActi
                         ->options(
                             Product::where('is_activated', 1)->get()->mapWithKeys(function ($product) {
                                 return [
-                                    $product->id => "{$product->sku} - {$product->name} ($" . $product->amount . ")",
+                                    $product->id => "{$product->sku} - {$product->name} (" . $product->amount . "U)",
                                 ];
                             })
                         )

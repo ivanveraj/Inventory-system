@@ -11,11 +11,12 @@
             </thead>
             <tbody>
                 @foreach ($extras as $extra)
-                    <tr class="border-b border-gray-700 hover:bg-gray-800 transition">
-                        <td class="p-2 break-words">{{ $extra->Product->name }}</td>
-                        <td class="p-2 flex justify-center">{{ $extra->amount }}</td>
-                        <td class="p-2 text-center">{{ formatMoney($extra->price) }}</td>
-                        <td class="p-2 flex justify-center">{{ formatMoney($extra->amount * $extra->price) }}</td>
+                    <tr class="border-b border-gray-700">
+                        <td class="p-2 text-black">{{ $extra->Product->name }}</td>
+                        <td class="p-2 flex justify-center text-black">{{ $extra->amount }}</td>
+                        <td class="p-2 text-center text-black">{{ formatMoney($extra->price) }}</td>
+                        <td class="p-2 flex justify-center text-black">{{ formatMoney($extra->amount * $extra->price) }}
+                        </td>
                     </tr>
                 @endforeach
             </tbody>
@@ -24,7 +25,10 @@
 
     <div class="flex justify-end items-center mt-6">
         @if ($sale->type == 1 && $sale->start_time)
-            <h2 class="text-lg font-bold">Tiempo: {{ $time }} (minutos) = {{ formatMoney($priceTime) }}</h2>
+            <div>
+                <h2>Hora Inicio {{ $sale->start_time }}</h2>
+                <h2 class="text-lg font-bold">Tiempo: {{ $time }} (minutos) = {{ formatMoney($priceTime) }}</h2>
+            </div>
         @endif
     </div>
     <div class="flex justify-end items-center mt-4">

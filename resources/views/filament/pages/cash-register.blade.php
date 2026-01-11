@@ -20,24 +20,22 @@
 
         {{ $this->table }}
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="col-span-1">
+        {{-- <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="col-span-1"> --}}
                 @livewire('cash-movements', ['currentDay' => $currentDay->id])
-            </div>
+            {{-- </div>
             <div>
                 aa
             </div>
-        </div>
+        </div> --}}
     @else
         <div class="text-center py-12">
             <div class="max-w-md mx-auto">
-
-                <div>
-                    {{ $this->openCashRegisterAction }}
-                </div>
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No hay día activo</h3>
-                <p class="text-gray-500 dark:text-gray-400 mb-4">Usa el botón "Abrir Caja" en la parte superior para
-                    iniciar un nuevo día con el saldo inicial.</p>
+                <h3 class="text-lg font-medium my-2">No hay día activo</h3>
+                <p class="mb-4">
+                    Usa el botón "Abrir Caja" en la parte superior para
+                    iniciar un nuevo día con el saldo inicial.
+                </p>
             </div>
         </div>
     @endif

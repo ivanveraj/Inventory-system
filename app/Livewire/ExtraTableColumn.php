@@ -9,7 +9,6 @@ use App\Http\Traits\SaleTrait;
 use App\Models\Extra;
 use App\Models\Product;
 use App\Models\SaleTable;
-use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\Select;
@@ -18,6 +17,7 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Filament\Actions\Action;
 
 class ExtraTableColumn extends Component implements HasForms, HasActions
 {
@@ -26,13 +26,12 @@ class ExtraTableColumn extends Component implements HasForms, HasActions
 
     public $saleId, $sale, $extras;
 
-    public function addExtraAction()
+    public function addExtraAction(): Action
     {
         return Action::make('addExtra')
-            ->hiddenLabel()
+            ->hiddenLabel()->outlined()
             ->icon('heroicon-o-plus')
             ->color('success')
-            ->outlined()
             ->modalHeading('Agregar producto')
             ->modalSubmitActionLabel('Agregar')
             ->hidden($this->saleId == null)
@@ -43,7 +42,7 @@ class ExtraTableColumn extends Component implements HasForms, HasActions
                         ->placeholder('Seleccione un producto')
                         ->columnSpan(2)->required()->searchable()
                         ->options(
-                            Product::where('is_activated', 1)->where('amount','>',0)->get()->mapWithKeys(function ($product) {
+                            Product::where('is_activated', 1)->where('amount', '>', 0)->get()->mapWithKeys(function ($product) {
                                 return [
                                     $product->id => "{$product->sku} - {$product->name} (" . $product->amount . "U)",
                                 ];
@@ -84,15 +83,11 @@ class ExtraTableColumn extends Component implements HasForms, HasActions
             });
     }
 
-    public function deleteExtraAction()
+    public function deleteExtraAction(): Action
     {
-        return Action::make('deleteExtra')
-            ->hiddenLabel()
-            ->icon('heroicon-o-trash')
-            ->color('danger')
-            ->outlined()
-            ->size('sm')
-            ->requiresConfirmation()
+        return Action::make('deleteExtra')->hiddenLabel()
+            ->icon('heroicon-o-trash')->color('danger')->size('sm')
+            ->requiresConfirmation()->outlined()
             ->action(function ($arguments) {
                 $extra = $this->getExtraById($arguments['extraId']);
                 if (is_null($extra)) {

@@ -1,6 +1,6 @@
 <div class="w-full">
     <div class="flex justify-end" style="padding-top:.5rem">
-        {{-- {{ $this->addExtraAction }} --}}
+        {{ $this->addExtraAction }}
     </div>
     @if (!empty($extras) && $extras->isNotEmpty())
         <table class="w-full align-top border-gray-700 text-gray-300 text-sm my-4">
@@ -14,8 +14,8 @@
             </thead>
             <tbody>
                 @foreach ($extras as $extra)
-                    <tr class="border-b border-gray-700 hover:bg-gray-800 transition">
-                        <td class="p-1 break-words">{{ $extra->Product->name }}</td>
+                    <tr class="border-b border-gray-700">
+                        <td class="p-1 text-black">{{ $extra->Product->name }}</td>
                         <td class="p-1 flex justify-center">
                             <x-filament::input.wrapper class="input-wrapper-fit">
                                 <x-filament::input type="number" min="1"
@@ -24,7 +24,7 @@
                                     value="{{ $extra->amount }}" class="w-fit max-w-32" />
                             </x-filament::input.wrapper>
                         </td>
-                        <td class="p-1 text-center" id="priceExtra_{{ $extra->id }}"
+                        <td class="p-1 text-center text-black" id="priceExtra_{{ $extra->id }}"
                             data-price="{{ $extra->price }}">
                             {{ formatMoney($extra->price) }}
                         </td>

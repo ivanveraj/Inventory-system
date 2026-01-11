@@ -12,7 +12,6 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class HistoryTableOverview extends BaseWidget
 {
-
     public function table(Table $table): Table
     {
         return $table

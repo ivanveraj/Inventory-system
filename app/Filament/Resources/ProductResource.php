@@ -167,7 +167,7 @@ class ProductResource extends Resource
                             ->schema([
                                 Placeholder::make('Inventario Actual')
                                     ->content(function (Product $product) {
-                                        return $product->amount . ' Kg';
+                                        return $product->amount . ' Unidades';
                                     }),
                                 TextInput::make('amount')->label('Cantidad a Disminuir')
                                     ->required()->numeric()->default(0)

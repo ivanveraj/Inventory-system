@@ -9,7 +9,6 @@ use App\Http\Traits\SaleTrait;
 use App\Http\Traits\SettingTrait;
 use App\Http\Traits\TableTrait;
 use App\Models\SaleTable;
-use App\Tables\Columns\ExtraTableColumn;
 use App\Tables\Columns\ProductsColumn;
 use Carbon\Carbon;
 use Filament\Actions\Action as ActionsAction;
@@ -20,12 +19,14 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
+use Filament\Actions\Contracts\HasActions;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Forms\Components\TextInput;
 
-class Sales extends Page implements HasTable, HasForms
+class Sales extends Page implements HasTable, HasForms, HasActions
 {
-    use InteractsWithTable, InteractsWithForms;
+    use InteractsWithTable, InteractsWithForms, InteractsWithActions;
     use SaleTrait, NotificationTrait, SettingTrait, GeneralTrait, TableTrait;
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-s-currency-dollar';
@@ -37,43 +38,49 @@ class Sales extends Page implements HasTable, HasForms
     public function mount()
     {
         $this->day = getExistDay();
-        $this->minPrice = $this->getSetting('PrecioMinimo');
-        $this->minTime = $this->getSetting('TiempoMinimo');
+        $settings = $this->getSettings();
+        $this->minPrice = $settings['PrecioMinimo'];
+        $this->minTime = $settings['TiempoMinimo'];
         $this->priceXHour = $this->getPrecioActual();
     }
 
     protected function getHeaderActions(): array
     {
         return [
-            ActionsAction::make('endDay')
-                ->label('Finalizar Día')
-                ->icon('heroicon-o-clock')
-                ->color('danger')
+            ActionsAction::make('endDay')->label('Finalizar Día')
+                ->icon('heroicon-o-clock')->color('danger')
                 ->requiresConfirmation()
-                ->hidden(fn() => $this->day == true ? false : true)
+                ->hidden(fn() => !$this->day)
                 ->modalHeading('Confirmación de Cierre')
                 ->modalDescription('Está a punto de finalizar el día. Asegúrese de que todas las ventas estén cerradas antes de continuar. Este proceso no se puede deshacer.')
                 ->modalSubmitActionLabel('Sí, finalizar día')
                 ->modalCancelActionLabel('Cancelar')
-                ->action(function () {
+                ->schema([
+                    TextInput::make('cash_left_for_next_day')->label('Dinero Base para el día siguiente')
+                        ->required()->numeric()->prefix('$')
+                        ->hintIcon(...hint_info_tooltip('Este es el dinero base para el día siguiente. Se usará para calcular el saldo de la caja al finalizar el día.'))
+                ])
+                ->action(function (array $data) {
                     // Obtener todas las ventas de mesas (type 1)
                     $sales = SaleTable::where('type', 1)->get();
 
                     // Verificar si hay alguna mesa con `start_time` activo
                     foreach ($sales as $sale) {
                         if (!is_null($sale->start_time)) {
-                            return self::customNotification('error', 'Error', 'Debe cerrar todas las ventas de las mesas para proceder.');
+                            return self::customNotification('danger', 'Error', 'Debe cerrar todas las ventas de las mesas para proceder.');
                         }
                     }
 
                     // Verificar si hay ventas generales (type 2) abiertas
                     $couldGeneral = SaleTable::where('type', 2)->first();
                     if (!is_null($couldGeneral)) {
-                        return self::customNotification('error', 'Error', 'Debe cerrar todas las ventas generales para proceder.');
+                        return self::customNotification('danger', 'Error', 'Debe cerrar todas las ventas generales para proceder.');
                     }
 
                     // Finalizar el día
                     $day = getDay();
+                    $day->cash_left_for_next_day = $data['cash_left_for_next_day'];
+                    $day->status = 'closed';
                     $day->finish_day = now();
                     $day->save();
 
@@ -87,16 +94,14 @@ class Sales extends Page implements HasTable, HasForms
     public function table(Table $table): Table
     {
         return $table
-            ->query($this->day ? SaleTable::query()->where('type', 1) : SaleTable::query()->whereRaw('1 = 0'))
-            ->poll(null)
-            ->paginated(false)
+            ->query($this->day ? SaleTable::query()->whereHas('table', function ($query) {
+                $query->where('state', 1);
+            })->where('type', 1) : SaleTable::query()->whereRaw('1 = 0'))
+            ->poll(null)->paginated(false)
             ->columns([
-                TextColumn::make('table.name')
-                    ->label('Mesa')
-                    ->sortable()->wrap()
-                    ->searchable(),
-                TextColumn::make('start_time')
-                    ->label('Tiempo transcurrido')
+                TextColumn::make('table.name')->label('Mesa')
+                    ->sortable()->wrap()->searchable(),
+                TextColumn::make('start_time')->label('Tiempo transcurrido')
                     ->sortable()->wrap()->alignCenter()->default('-')
                     ->formatStateUsing(function ($record) {
                         if (!$record->start_time) {
@@ -116,21 +121,15 @@ class Sales extends Page implements HasTable, HasForms
                             'data-start-time' => $record->start_time ? strtotime($record->start_time) * 1000 : '-',
                         ];
                     }),
-                ProductsColumn::make('extras')
-                    ->label('Extras'),
-                TextColumn::make('id')
-                    ->label('Total')
-                    ->alignCenter()
-                    ->formatStateUsing(fn($record) => $this->calculateTotal($record, $this->minPrice, $this->minTime, $this->priceXHour))
-                    ->sortable(),
+                ProductsColumn::make('extras')->label('Extras'),
+                TextColumn::make('id')->label('Total')
+                    ->alignCenter()->sortable()
+                    ->formatStateUsing(fn($record) => $this->calculateTotal($record, $this->minPrice, $this->minTime, $this->priceXHour)),
             ])
             ->recordActions([
-                ActionsAction::make('startTime')
-                    ->tooltip('Iniciar tiempo')
+                ActionsAction::make('startTime')->tooltip('Iniciar tiempo')
                     ->hiddenLabel()
-                    ->icon('heroicon-o-play')
-                    ->color('success')
-                    ->size('xl')
+                    ->icon('heroicon-o-play')->color('success')->size('xl')
                     ->hidden(fn($record) => !is_null($record->start_time))
                     ->action(function ($record) {
                         $sale = $this->getSale($record->id);
@@ -149,17 +148,13 @@ class Sales extends Page implements HasTable, HasForms
 
                         return self::customNotification('success', 'Éxito', 'El tiempo se inició correctamente.');
                     }),
-                ActionsAction::make('endTime')
-                    ->hiddenLabel()
-                    ->tooltip('Finalizar tiempo')
-                    ->icon('heroicon-o-stop')
-                    ->color('danger')
-                    ->size('xl')
+                ActionsAction::make('endTime')->tooltip('Finalizar tiempo')
+                    ->hiddenLabel()->slideOver()
+                    ->icon('heroicon-o-stop')->color('danger')->size('xl')
                     ->hidden(fn($record) => is_null($record->start_time) && $record->extras->count() <= 0)
                     ->modalHeading(fn($record) => 'Detalle del pago (' . ($record->table->name ?? '') . ')')
                     ->modalSubmitActionLabel('Pagado')
                     ->modalCancelActionLabel('Cerrar')
-                    ->slideOver()
                     ->modalContent(function ($record) {
                         $total = 0;
                         $priceTime = 0;

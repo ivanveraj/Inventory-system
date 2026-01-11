@@ -1,5 +1,13 @@
 <x-filament-panels::page>
-    {{ $this->table }}
+    {{-- <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="col-span-1 md:col-span-2"> --}}
+            {{ $this->table }}
+        {{-- </div>
+        <div>
+            aa
+        </div>
+    </div> --}}
+
 
     @if ($this->day)
         @livewire('general-sales-table')
@@ -84,4 +92,6 @@
             });
         </script>
     @endpush
+
+    <x-filament-actions::modals />
 </x-filament-panels::page>
