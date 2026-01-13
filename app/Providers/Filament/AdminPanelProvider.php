@@ -25,26 +25,26 @@ use App\Filament\Pages\CashRegister;
 use App\Filament\Pages\Sales;
 use App\Filament\Resources\Roles\RoleResource;
 use App\Filament\Resources\UserResource;
-use App\Filament\Resources\ProductResource;
+use App\Filament\Resources\Products\ProductResource;
 use Filament\Navigation\NavigationGroup;
-use App\Filament\Resources\SettingResource;
+use App\Filament\Resources\Settings\SettingResource;
 use App\Filament\Resources\TableResource;
 
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
-        return $panel
+        return $panel->id('admin')
             ->default()
-            ->id('admin')
             ->path('admin')
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login(Login::class)
+            ->maxContentWidth('full')
             ->topNavigation()
+            ->databaseNotifications()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-            ->maxContentWidth('full')
             ->navigation(function (NavigationBuilder $builder): NavigationBuilder {
                 return $builder->items([
                     NavigationItem::make('Reportes')
@@ -57,7 +57,6 @@ class AdminPanelProvider extends PanelProvider
                         ->url(fn() => Sales::getUrl())
                         ->icon('heroicon-o-shopping-cart'),
                 ])->groups([
-
                     NavigationGroup::make()->label('Negocio')
                         ->icon('heroicon-o-rectangle-stack')
                         ->items([

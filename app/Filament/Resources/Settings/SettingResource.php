@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Resources\Settings;
 
 use Filament\Schemas\Schema;
 use Filament\Actions\EditAction;
-use App\Filament\Resources\SettingResource\Pages\ManageSettings;
+use App\Filament\Resources\Settings\Pages\ManageSettings;
 use App\Models\Setting;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
@@ -38,13 +38,10 @@ class SettingResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('group')->label('Grupo')
-                    ->sortable()->searchable(),
                 TextColumn::make('key')->label('Configuración')
                     ->sortable()->searchable(),
                 TextColumn::make('description')->label('Descripción')
-                    ->wrap()
-                    ->limit(50)
+                    ->wrap()->limit(100)
                     ->tooltip(fn($record) => $record->description),
                 TextColumn::make('value')->label('Valor')
                     ->sortable(),
@@ -64,3 +61,4 @@ class SettingResource extends Resource
         ];
     }
 }
+

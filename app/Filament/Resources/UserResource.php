@@ -47,6 +47,9 @@ class UserResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn($query) => $query->whereDoesntHave('roles', function ($query) {
+                $query->where('name', 'SuperAdmin');
+            }))
             ->columns([
                 TextColumn::make('id')->label('ID')
                     ->sortable()->searchable()->toggleable(),
@@ -58,7 +61,7 @@ class UserResource extends Resource
                     ->searchable()->sortable()->placeholder('—')
                     ->alignCenter()->toggleable(),
                 TextColumn::make('roles.name')->label('Rol')
-                    ->badge()->searchable()
+                    ->badge()->searchable()->alignCenter()
                     ->color('primary')
                     ->formatStateUsing(fn($record) => $record->roles->pluck('name')->join(', ')),
                 ToggleColumn::make('status')->label('Estado'),
@@ -84,23 +87,10 @@ class UserResource extends Resource
             ], layout: FiltersLayout::AboveContent)
             ->defaultSort('created_at', 'desc')
             ->recordActions([
-                EditAction::make('edit')
-                    ->label('Editar')
-                    ->tooltip('Editar usuario')
-                    ->icon('heroicon-o-pencil')
-                    ->slideOver()
+                EditAction::make()->slideOver()
                     ->modalHeading('Editar Usuario'),
-                DeleteAction::make('delete')
-                    ->label('Eliminar')
-                    ->tooltip('Eliminar usuario')
-                    ->icon('heroicon-o-trash')
-                    ->requiresConfirmation(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->label('Eliminar seleccionados'),
-                ]),
+                DeleteAction::make()
+                    ->modalHeading('Eliminar Usuario'),
             ])
             ->emptyStateHeading('No hay usuarios')
             ->emptyStateDescription('Comience creando su primer usuario.')

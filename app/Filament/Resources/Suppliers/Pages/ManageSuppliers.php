@@ -13,10 +13,9 @@ class ManageSuppliers extends ManageRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make('create')
-                ->label('Añadir proveedor')
-                ->icon('heroicon-o-plus')
+            CreateAction::make('create')->label('Añadir proveedor')
                 ->modalHeading('Crear Proveedor')
+                ->slideOver()
                 ->mutateDataUsing(function (array $data): array {
                     if (isset($data['schedule']) && is_array($data['schedule'])) {
                         $data['schedule'] = json_encode($data['schedule']);

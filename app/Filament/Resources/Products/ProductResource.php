@@ -1,75 +1,77 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Resources\Products;
 
+use App\Filament\Resources\Products\Pages\ManageProducts;
+use App\Models\Product;
+use BackedEnum;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use App\Enums\ProductCategory;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Toggle;
+use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Grouping\Group;
 use Filament\Actions\Action;
 use Filament\Schemas\Components\Grid;
-use Filament\Actions\EditAction;
-use Filament\Actions\DeleteAction;
-use App\Enums\ProductCategory;
-use App\Filament\Resources\ProductResource\Pages\ManageProducts;
-use App\Models\Product;
 use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\RichEditor;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Resources\Resource;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Enums\FiltersLayout;
-use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Grouping\Group;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\ToggleColumn;
 
 class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-table-cells';
     protected static ?string $label = 'Inventario';
+    protected static ?string $pluralLabel = 'Inventario';
 
     public static function form(Schema $schema): Schema
     {
-        return $schema
-            ->columns(3)
-            ->components([
-                TextInput::make('name')->label('Nombre del Producto')
-                    ->placeholder('Ingrese el nombre del producto')
-                    ->required()->maxLength(255),
-                TextInput::make('sku')->label('Código SKU')
-                    ->placeholder('Ingrese el código SKU único')
-                    ->required()->maxLength(255)->reactive()->unique(ignoreRecord: true)
-                    ->formatStateUsing(fn($state) => strtoupper($state))
-                    ->hintIcon(...hint_info_tooltip('El SKU se mostrará en mayúsculas automáticamente.')),
-                Select::make('category')->label('Categoria')
-                    ->placeholder('Seleccione la categoria del producto')
-                    ->options(ProductCategory::class)
-                    ->required()->searchable(),
-                RichEditor::make('description')->label('Descripción')
-                    ->columnSpanFull(),
-                TextInput::make('buyprice')->label('Precio de Compra')
-                    ->placeholder('Ingrese el precio de compra (ej. 1500)')
-                    ->required()->numeric()->reactive(),
-                TextInput::make('saleprice')->label('Precio de Venta')
-                    ->placeholder('Ingrese el precio de venta (ej. 2000)')
-                    ->required()->numeric()->reactive()->gte('buyprice'),
-                TextInput::make('amount')->label('Cantidad en Inventario')
-                    ->placeholder('Ingrese la cantidad disponible')
-                    ->required()->numeric()->disabledOn('edit'),
-                Toggle::make('is_activated')->label('Activado')
-                    ->default(true)->inline(false),
-                Toggle::make('has_stock_alert')->label('Activar Alerta de Stock')
-                    ->default(true)->reactive()->inline(false),
-                TextInput::make('min_stock_alert')->label('Alerta de Stock Mínimo')
-                    ->placeholder('Ingrese la cantidad mínima para la alerta')
-                    ->required()->numeric()->reactive()
-                    ->hidden(fn($get) => !$get('has_stock_alert')),
-                TextInput::make('barcode')->label('Código de Barras')
-                    ->placeholder('Ingrese el código de barras del producto')
-                    ->maxLength(255),
-            ]);
+        return $schema->columns(3)->components([
+            TextInput::make('name')->label('Nombre del Producto')
+                ->placeholder('Ingrese el nombre del producto')
+                ->required()->maxLength(255),
+            TextInput::make('sku')->label('Código SKU')
+                ->placeholder('Ingrese el código SKU único')
+                ->required()->maxLength(255)->reactive()->unique(ignoreRecord: true)
+                ->formatStateUsing(fn($state) => strtoupper($state))
+                ->hintIcon(...hint_info_tooltip('El SKU se mostrará en mayúsculas automáticamente.')),
+            Select::make('category')->label('Categoria')
+                ->placeholder('Categoria del producto')
+                ->options(ProductCategory::class)
+                ->required()->searchable(),
+            RichEditor::make('description')->label('Descripción')
+                ->columnSpanFull(),
+            TextInput::make('buyprice')->label('Precio de Compra')
+                ->placeholder('Ingrese el precio de compra (ej. 1500)')
+                ->required()->numeric()->reactive(),
+            TextInput::make('saleprice')->label('Precio de Venta')
+                ->placeholder('Ingrese el precio de venta (ej. 2000)')
+                ->required()->numeric()->reactive()->gte('buyprice'),
+            TextInput::make('amount')->label('Cantidad en Inventario')
+                ->placeholder('Ingrese la cantidad disponible')
+                ->required()->numeric()
+                ->visible(fn()=> auth()->user()->hasRole('SuperAdmin')),
+            Toggle::make('is_activated')->label('Activado')
+                ->default(true)->inline(false),
+            Toggle::make('has_stock_alert')->label('Activar Alerta de Stock')
+                ->default(true)->reactive()->inline(false),
+            TextInput::make('min_stock_alert')->label('Alerta de Stock Mínimo')
+                ->placeholder('Ingrese la cantidad mínima para la alerta')
+                ->required()->numeric()->reactive()
+                ->hidden(fn($get) => !$get('has_stock_alert')),
+            TextInput::make('barcode')->label('Código de Barras')
+                ->placeholder('Ingrese el código de barras del producto')
+                ->maxLength(255),
+        ]);
     }
 
     public static function table(Table $table): Table

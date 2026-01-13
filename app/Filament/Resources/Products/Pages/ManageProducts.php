@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\ProductResource\Pages;
+namespace App\Filament\Resources\Products\Pages;
 
-use App\Filament\Resources\ProductResource;
-use App\Filament\Widgets\InventoryStats;
+use App\Filament\Resources\Products\ProductResource;
 use Filament\Actions\CreateAction;
 use Filament\Actions\ExportAction;
 use Filament\Resources\Pages\ManageRecords;
 use App\Filament\Exports\ProductExporter;
+use App\Filament\Widgets\InventoryStats;
+use Filament\Actions\Exports\Enums\ExportFormat;
 
 class ManageProducts extends ManageRecords
 {
@@ -22,7 +23,8 @@ class ManageProducts extends ManageRecords
                 ->label('Exportar Inventario')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
-                ->exporter(ProductExporter::class),
+                ->exporter(ProductExporter::class)
+                ->formats([ExportFormat::Xlsx,]),
         ];
     }
 

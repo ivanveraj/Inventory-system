@@ -140,7 +140,7 @@ function DateDifferenceSeconds($date1, $date2)
 if (!function_exists('getAdministrativeRoles')) {
     function getAdministrativeRoles(): array
     {
-        return ['Super Admin', 'Administrador', 'Recepcionista'];
+        return ['SuperAdmin', 'Administrador', 'Cajero', 'Colaborador'];
     }
 }
 

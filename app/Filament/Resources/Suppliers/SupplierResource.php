@@ -5,17 +5,16 @@ namespace App\Filament\Resources\Suppliers;
 use Filament\Schemas\Schema;
 use Filament\Actions\EditAction;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\CreateAction;
 use App\Filament\App\Resources\Suppliers\Pages\ManageSuppliers;
-use App\Enums\SupplierCategory;
 use App\Models\Supplier;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use App\Enums\ProductCategory;
+use Filament\Tables\Grouping\Group;
 
 class SupplierResource extends Resource
 {
@@ -27,38 +26,27 @@ class SupplierResource extends Resource
     {
         return $schema
             ->components([
-                TextInput::make('name')
-                    ->label('Empresa')
+                TextInput::make('name')->label('Empresa')
                     ->placeholder('Nombre de la Empresa o Distribuidora')
-                    ->required()
-                    ->maxLength(255),
-                Select::make('category')
-                    ->label('Categoría')
-                    ->searchable()
-                    ->required()
-                    ->options(SupplierCategory::class)
-                    ->placeholder('Selecciona una categoría'),
-                TextInput::make('contact_person')
-                    ->label('Nombre Vendedor')
+                    ->required()->maxLength(255)->columnSpanFull(),
+                Select::make('category')->label('Categoría')
+                    ->placeholder('Selecciona una categoría')
+                    ->searchable()->required()
+                    ->options(ProductCategory::class),
+                TextInput::make('contact_person')->label('Nombre Vendedor')
                     ->placeholder('Nombre de la persona de contacto')
                     ->maxLength(255),
-                TextInput::make('email')
-                    ->email()
-                    ->label('Correo Electrónico')
+                TextInput::make('email')->label('Correo Electrónico')
                     ->placeholder('Introduce el correo electrónico')
-                    ->maxLength(255),
-                TextInput::make('phone')
-                    ->label('Teléfono')
-                    ->tel()
-                    ->required()
+                    ->email()->maxLength(255),
+                TextInput::make('phone')->label('Teléfono')
                     ->placeholder('Introduce el número de teléfono')
-                    ->maxLength(255),
-                TextInput::make('address')
-                    ->label('Dirección')
-                    ->placeholder('Introduce la dirección')
-                    ->maxLength(255),
-                Select::make('schedule')
-                    ->label('Fecha de pedido')
+                    ->tel()->required()->maxLength(255),
+                TextInput::make('address')->label('Dirección')
+                    ->maxLength(255)
+                    ->placeholder('Introduce la dirección'),
+                Select::make('schedule')->label('Fecha de pedido')
+                    ->multiple()->searchable()
                     ->options([
                         'Monday' => 'Lunes',
                         'Tuesday' => 'Martes',
@@ -67,29 +55,30 @@ class SupplierResource extends Resource
                         'Friday' => 'Viernes',
                         'Saturday' => 'Sábado',
                         'Sunday' => 'Domingo',
-                    ])
-                    ->multiple()
-                    ->searchable(),
+                    ]),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->groups([
+                Group::make('category')->label('Categoria')->collapsible()
+                    ->getTitleFromRecordUsing(fn($record) => ProductCategory::getName($record->category)),
+            ])
             ->columns([
-                TextColumn::make('name')
-                    ->label('Proveedor')
-                    ->html()
+                TextColumn::make('name')->label('Proveedor')
+                    ->html()->searchable()->sortable()
                     ->formatStateUsing(function ($record) {
                         $name = $record->name ? 'Empresa: ' . $record->name . '<br>' : '';
-                        $contact = $record->contact_person ? 'Vendedor:' . $record->contact_person . '<br>' : '';
-                        $email = $record->email ? 'Email:' . $record->email . '<br>' : '';
-                        $phone = $record->phone ? 'Teléfono:' . $record->phone . '<br>' : '';
-                        return "{$name} {$contact} {$email} {$phone}";
-                    })
-                    ->searchable(),
-                TextColumn::make('schedule')
-                    ->label('Horario')
+                        $email = $record->email ? 'Email: ' . $record->email : '';
+                        return "{$name} {$email}";
+                    }),
+                TextColumn::make('contact_person')->label('Vendedor')
+                    ->searchable()->sortable()->toggleable(),
+                TextColumn::make('phone')->label('Teléfono')
+                    ->searchable()->toggleable()->alignCenter(),
+                TextColumn::make('schedule')->label('Horario')
                     ->html()
                     ->formatStateUsing(function ($state) {
                         $dayTranslations = [
@@ -118,44 +107,29 @@ class SupplierResource extends Resource
                         return $state;
                     })
                     ->searchable(),
-                TextColumn::make('address')
-                    ->label('Dirección')
+                TextColumn::make('address')->label('Dirección')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('created_at')
-                    ->label('Fecha de Creación')
-                    ->dateTime()
-                    ->sortable()
+                TextColumn::make('created_at')->label('Fecha de Creación')
+                    ->dateTime()->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->label('Fecha de Actualización')
-                    ->dateTime()
-                    ->sortable()
+                TextColumn::make('updated_at')->label('Fecha de Actualización')
+                    ->dateTime()->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->recordActions([
-                EditAction::make('edit')
-                    ->tooltip('Editar proveedor')
+                EditAction::make()->modalHeading('Editar Proveedor')
+                    ->slideOver()
                     ->beforeFormFilled(function ($record) {
                         if (isset($record->schedule) && is_string($record->schedule)) {
                             $record->schedule = json_decode($record->schedule, true);
                         }
-                    })
-                    ->hiddenLabel(),
-                DeleteAction::make('delete')
-                    ->tooltip('Eliminar proveedor')
-                    ->hiddenLabel()
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+                    }),
+                DeleteAction::make()
             ])
             ->emptyStateActions([
-                CreateAction::make('create')
-                    ->label('Añadir proveedor')
-                    ->icon('heroicon-o-plus')
-                    ->modalHeading('Crear Proveedor')
+                CreateAction::make('create')->label('Añadir proveedor')
+                    ->slideOver()->modalHeading('Crear Proveedor')
                     ->mutateDataUsing(function (array $data): array {
                         if (isset($data['schedule']) && is_array($data['schedule'])) {
                             $data['schedule'] = json_encode($data['schedule']);

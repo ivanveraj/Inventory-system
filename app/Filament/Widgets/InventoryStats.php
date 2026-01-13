@@ -9,33 +9,26 @@ use Illuminate\Support\Facades\Auth;
 
 class InventoryStats extends BaseWidget
 {
+    public $isSuperAdmin;
+
+    public function mount(): void
+    {
+        $this->isSuperAdmin = auth()->user()->hasRole('SuperAdmin');
+    }
+
     protected function getColumns(): int
     {
-        return 3;
+        return $this->isSuperAdmin ? 4 : 2;
     }
 
     protected function getStats(): array
     {
-        $user = Auth::user();
-        $isSuperAdmin = $user && $user->hasRole('SuperAdmin');
-
         // Calcular estadísticas básicas
         $totalProducts = Product::count();
 
         // Productos con alerta de stock
         $productsWithStockAlert = Product::where('has_stock_alert', true)
             ->whereColumn('amount', '<', 'min_stock_alert')->count();
-
-        // Calcular valor total del inventario (solo para Super Admin)
-        $totalInventoryValue = 0;
-        $totalInventoryCost = 0;
-        if ($isSuperAdmin) {
-            $products = Product::where('is_activated', true)->get();
-            foreach ($products as $product) {
-                $totalInventoryValue += $product->saleprice * $product->amount;
-                $totalInventoryCost += $product->buyprice * $product->amount;
-            }
-        }
 
         $stats = [
             Stat::make('Total de Productos', $totalProducts)
@@ -47,11 +40,25 @@ class InventoryStats extends BaseWidget
                 ->icon('heroicon-o-exclamation-triangle'),
         ];
 
+        // Calcular valor total del inventario (solo para Super Admin)
+        $totalInventoryValue = 0;
+        $totalInventoryCost = 0;
+        if ($this->isSuperAdmin) {
+            $products = Product::where('is_activated', true)->get();
+            foreach ($products as $product) {
+                $totalInventoryValue += $product->saleprice * $product->amount;
+                $totalInventoryCost += $product->buyprice * $product->amount;
+            }
+        }
+
         // Agregar estadísticas financieras solo para Super Admin
-        if ($isSuperAdmin) {
+        if ($this->isSuperAdmin) {
             $stats[] = Stat::make('Costo Total Inventario', formatMoney($totalInventoryCost))
                 ->description('Valor total del precio de compra')
                 ->color('warning')->icon('heroicon-o-banknotes');
+            $stats[] = Stat::make('Valor Total Inventario', formatMoney($totalInventoryValue))
+                ->description('Valor total del precio de venta')
+                ->color('success')->icon('heroicon-o-currency-dollar');
         }
 
         return $stats;

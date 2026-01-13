@@ -9,6 +9,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\DeleteAction;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Forms\Components\Toggle;
+use Filament\Actions\CreateAction;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,6 +33,10 @@ class AppServiceProvider extends ServiceProvider
 
         DeleteAction::configureUsing(function (DeleteAction $action) {
             $action->hiddenLabel()->icon('heroicon-s-trash')->tooltip('Eliminar');
+        }, isImportant: true);
+
+        CreateAction::configureUsing(function (CreateAction $action) {
+            $action->icon('heroicon-s-plus');
         }, isImportant: true);
 
         ToggleColumn::configureUsing(function (ToggleColumn $column) {
