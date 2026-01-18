@@ -64,14 +64,14 @@ function completeNameUser($user)
     return $user->name . ' ' . $user->surname;
 }
 
-function getDay()
+function getDay($openingBalance = 0)
 {
     $day = Day::where('status', 'open')->orderBy('created_at', 'DESC')->first();
     if (is_null($day)) {
         $day = Day::create([
             'total' => 0,
             'profit' => 0,
-            'opening_balance' => 0,
+            'opening_balance' => $openingBalance,
             'opened_at' => now(),
             'opened_by' => Auth::id(),
             'status' => 'open',
@@ -83,7 +83,7 @@ function getDay()
             'products_total' => 0,
             'expenses' => 0,
             'withdrawals' => 0,
-            'cash_left_for_next_day' => 0,
+            'cash_left_for_next_day' => $openingBalance,
             'final_balance' => 0,
         ]);
         $tables = Table::where('state', 1)->orderBy('id', 'ASC')->get();
@@ -93,6 +93,12 @@ function getDay()
     }
     return $day;
 }
+
+function getLastDay2()
+{
+    return Day::where('status', 'closed')->orderBy('created_at', 'desc')->first();
+}
+
 function getExistDay()
 {
     $day = Day::where('status', 'open')->orderBy('created_at', 'DESC')->first();

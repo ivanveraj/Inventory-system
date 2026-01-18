@@ -14,6 +14,7 @@ use Filament\Tables\Columns\TextColumn;
 use App\Models\CashMovement;
 use App\Enums\ExpenseType;
 use Livewire\Attributes\On;
+use Filament\Actions\ViewAction;
 
 class CashMovements extends Component implements HasActions, HasSchemas, HasTable
 {
@@ -32,6 +33,7 @@ class CashMovements extends Component implements HasActions, HasSchemas, HasTabl
         return $table->heading('Movimientos de Caja')
             ->query(CashMovement::query()->where('day_id', $this->currentDay))
             ->defaultSort('created_at', 'desc')
+            ->paginated(false)
             ->columns([
                 TextColumn::make('user.name')->label('Responsable')
                     ->sortable()->searchable(),
@@ -51,7 +53,9 @@ class CashMovements extends Component implements HasActions, HasSchemas, HasTabl
                 TextColumn::make('created_at')->label('Fecha')
                     ->dateTime('d/m/Y H:i')
                     ->toggleable()->sortable(),
-            ]);
+            ])
+            ->emptyStateHeading('No hay movimientos registrados')
+            ->emptyStateDescription('Agrega ingresos o gastos para este día.');
     }
 
     public function render()

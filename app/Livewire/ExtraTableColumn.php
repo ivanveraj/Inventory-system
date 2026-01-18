@@ -87,7 +87,7 @@ class ExtraTableColumn extends Component implements HasForms, HasActions
     {
         return Action::make('deleteExtra')->hiddenLabel()
             ->icon('heroicon-o-trash')->color('danger')->size('sm')
-            ->requiresConfirmation()->outlined()
+            ->tooltip('Eliminar')
             ->action(function ($arguments) {
                 $extra = $this->getExtraById($arguments['extraId']);
                 if (is_null($extra)) {

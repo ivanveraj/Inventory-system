@@ -45,8 +45,14 @@ class DayDetailStats extends BaseWidget
         $totalTimeRevenue = $historyTables->sum('total');
         $totalTimeMinutes = $historyTables->sum('time');
         
-        // Calcular ingresos por productos (las ventas se registran en el día, así que usamos created_at)
-        $historySales = HistorySale::whereDate('created_at', $day->created_at->format('Y-m-d'))->get();
+        // Calcular ingresos por productos
+        $historySales = HistorySale::query()
+            ->where('day_id', $day->id)
+            ->orWhere(function ($query) use ($day) {
+                $query->whereNull('day_id')
+                    ->whereDate('created_at', $day->created_at->format('Y-m-d'));
+            })
+            ->get();
         $totalProductRevenue = $historySales->sum('total') - $totalTimeRevenue;
 
         return [

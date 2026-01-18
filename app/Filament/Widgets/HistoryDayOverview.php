@@ -11,6 +11,8 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
+use Filament\Actions\Action;
+use App\Filament\Pages\CashRegister;
 
 class HistoryDayOverview extends BaseWidget
 {
@@ -30,6 +32,11 @@ class HistoryDayOverview extends BaseWidget
                     ->formatStateUsing(fn($state) => formatMoney($state)),
                 TextColumn::make('finish_day')->label('Cierre')
                     ->dateTime('d M Y H:i A')
+            ])
+            ->recordActions([
+                Action::make('view')->tooltip('Ver')
+                    ->hiddenLabel()->icon('heroicon-o-eye')
+                    ->url(fn(Day $record) => CashRegister::getUrl(['day' => $record->id]))
             ])
             ->filters([
                 Filter::make('created_at')

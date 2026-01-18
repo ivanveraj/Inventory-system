@@ -2,6 +2,7 @@
 
 namespace App\Http\Traits;
 
+use App\Enums\TableType;
 use App\Models\HistoryTable;
 use App\Models\SaleTable;
 use App\Models\Table;
@@ -17,6 +18,11 @@ trait TableTrait
     {
         return Table::where('state', 1)->orderBy('id', 'ASC')->get();
     }
+
+    public function getTablesWithoutTime()
+    {
+        return Table::where('state', 1)->where('type', TableType::WITHOUT_TIME->value)->orderBy('id', 'ASC')->get();
+    }
     public function getSaleTables()
     {
         return SaleTable::where('state', 1)->orderBy('id', 'ASC')->get();
@@ -25,7 +31,8 @@ trait TableTrait
     {
         return Table::create([
             'name' => $name,
-            'state' => 1
+            'state' => 1,
+            'type' => TableType::WITH_TIME->value,
         ]);
     }
     public function addTimeHistoryTable($day_id, $table_id, $time, $total)

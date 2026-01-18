@@ -11,12 +11,18 @@ class HistorySale extends Model
 
     protected $fillable = [
         'id',
+        'day_id',
         'client',
         'total',
         'time',
         'price_time',
         'user_id'
     ];
+
+    public function day()
+    {
+        return $this->belongsTo(Day::class, 'day_id');
+    }
 
     public function table()
     {

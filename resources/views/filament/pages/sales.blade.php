@@ -1,13 +1,21 @@
 <x-filament-panels::page>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="col-span-1 md:col-span-2">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div class="col-span-1 md:col-span-3">
             {{ $this->table }}
         </div>
-        <div>
-            aa
-        </div>
-    </div>
 
+        <x-filament::section class="h-fit col-span-2">
+            <x-slot name="heading">
+                Venta Rápida
+            </x-slot>
+            <x-slot name="description">
+                Agrega productos y procesa la venta rápidamente
+            </x-slot>
+
+            @livewire('quick-sale-form')
+            
+        </x-filament::section>
+    </div>
 
     @if ($this->day)
         @livewire('general-sales-table')

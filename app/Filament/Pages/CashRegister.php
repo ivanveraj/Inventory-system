@@ -15,7 +15,6 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use App\Models\SaleTable;
 use Filament\Forms\Components\Select;
 use App\Enums\PaymentMethods;
 use App\Enums\ExpenseType;
@@ -27,6 +26,7 @@ use App\Models\HistoryTable;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Livewire\Attributes\Url;
 
 class CashRegister extends Page implements HasTable, HasForms, HasActions
 {
@@ -37,18 +37,37 @@ class CashRegister extends Page implements HasTable, HasForms, HasActions
     protected string $view = 'filament.pages.cash-register';
     protected ?string $subheading = 'Registra los ingresos y gastos de la caja';
 
-    public ?Day $currentDay = null;
+    public $currentDay, $lastDay;
     public bool $existsDay = false;
+    public bool $isHistoryDay = false;
+
+    #[Url(as: 'day')]
+    public ?int $dayId = null;
 
     public function mount()
     {
+        if ($this->dayId) {
+            $this->currentDay = Day::find($this->dayId);
+            if (!$this->currentDay) {
+                $this->customNotification('error', 'Error', 'No existe el día seleccionado.');
+                return redirect()->to(self::getUrl());
+            }
+            $this->existsDay = true;
+            $this->isHistoryDay = true;
+            $this->lastDay = null;
+            return;
+        }
+
         $this->currentDay = getDayCurrent();
         $this->existsDay = $this->currentDay ? true : false;
+        $this->lastDay = getLastDay2();
     }
 
     public function getTitle(): string
     {
-        return 'Registro de Caja: ' . ($this->currentDay?->created_at->format('d/m/Y') ?? 'Sin Día Activo');
+        $dateLabel = $this->currentDay?->created_at?->format('d/m/Y') ?? 'Sin Día Activo';
+        $prefix = $this->isHistoryDay ? 'Registro de Caja (Histórico): ' : 'Registro de Caja: ';
+        return $prefix . $dateLabel;
     }
 
     public function getFormExpense($type)
@@ -72,84 +91,43 @@ class CashRegister extends Page implements HasTable, HasForms, HasActions
     {
         return $table
             ->query(HistoryTable::query()->where('day_id', $this->currentDay?->id ?? 0))
+            ->heading('Recaudos en mesas')
+            ->defaultSort('table.name', 'asc')
+            ->paginated(false)
             ->columns([
-                TextColumn::make('table.name')
-                    ->label('Mesa')
-                    ->sortable()->wrap()
-                    ->searchable(),
-            ])
-            ->defaultSort('created_at', 'desc')
-            ->heading('Movimientos de Caja del Día')
-            ->emptyStateHeading('No hay movimientos registrados')
-            ->emptyStateDescription('Agrega ingresos o gastos para este día.')
-        ;
+                TextColumn::make('table.name')->label('Mesa')
+                    ->sortable()->wrap()->searchable(),
+                TextColumn::make('time')->label('Tiempo transcurrido')
+                    ->sortable()->alignCenter()
+                    ->formatStateUsing(fn($state) => $state . ' min (' . number_format($state / 60, 2) . ' h)'),
+                TextColumn::make('total')->label('Total')
+                    ->sortable()->alignCenter()
+                    ->formatStateUsing(fn($state) => formatMoney($state)),
+            ]);
     }
 
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('aa')->label('Abrir Caja')
+            Action::make('openCashRegister')->label('Abrir Caja')
                 ->color('success')->icon('heroicon-o-lock-open')
-                ->requiresConfirmation()
+                ->requiresConfirmation()->visible(fn() => !$this->existsDay && !$this->isHistoryDay)
                 ->modalHeading('Abrir Caja')
-                ->modalDescription('Asegúrate de ingresar el saldo inicial para comenzar el día.')
+                ->modalDescription(fn() => $this->lastDay ? 'Estas seguro de abrir la caja? Este proceso no es reversible.' : 'Asegúrate de ingresar el saldo inicial para comenzar el día.')
                 ->modalSubmitActionLabel('Abrir Caja')
-                ->schema([
-                    TextInput::make('opening_balance')
-                        ->label('Saldo Inicial')
-                        ->required()
-                        ->numeric()
-                        ->prefix('$')
-                        ->step(0.01)
-                        ->default(0),
+                ->schema(fn() => $this->lastDay ? [] : [
+                    TextInput::make('opening_balance')->label('Saldo Inicial')
+                        ->required()->numeric()->prefix('$')
+                        ->default(0)->minValue(0),
                 ])
                 ->action(function ($data) {
-                    // Verificar que no haya un día abierto
-                    $existingDay = Day::where('status', 'open')->first();
-                    if ($existingDay) {
-                        $this->customNotification('error', 'Ya existe un día abierto', 'Ya existe un día abierto, cierra el día actual para abrir uno nuevo.');
-                        return;
-                    }
-
-                    // // Crear nuevo día
-                    $day = Day::create([
-                        'opening_balance' => $data['opening_balance'],
-                        'opened_at' => now(),
-                        'opened_by' => Auth::id(),
-                        'status' => 'open',
-                        'total' => 0,
-                        'profit' => 0,
-                        'cash_sales' => 0,
-                        'card_sales' => 0,
-                         'transfer_sales' => 0,
-                        'total_sales' => 0,
-                        'tables_total' => 0,
-                        'products_total' => 0,
-                        'expenses' => 0,
-                        'withdrawals' => 0,
-                        'cash_left_for_next_day' => 0,
-                        'final_balance' => $data['opening_balance'],
-                    ]);
-
-                    // // Crear registros de historial de mesas
-                    $tables = $this->getTables();
-                    foreach ($tables as $table) {
-                        HistoryTable::create([
-                            'day_id' => $day->id,
-                            'table_id' => $table->id,
-                            'time' => 0,
-                            'total' => 0,
-                        ]);
-                    }
-
-                    $this->currentDay = $day;
-                    $this->dispatch('$refresh');
-
-                    $this->customNotification('success', 'Caja abierta correctamente', 'Caja abierta correctamente');
+                    $this->currentDay = getDay($this->lastDay ? $this->lastDay->cash_left_for_next_day : $data['opening_balance']);
+                    $this->customNotification('success', 'Exito', 'Caja abierta correctamente');
+                    return redirect()->to(Sales::getUrl());
                 }),
             Action::make('registerExpense')->label('Gasto')
-                ->hidden(fn() => !$this->existsDay)
-                ->color('danger')->icon('heroicon-o-plus-circle')
+                ->hidden(fn() => !$this->existsDay || $this->isHistoryDay)
+                ->color('danger')->icon('heroicon-s-plus')
                 ->schema($this->getFormExpense('Pago'))
                 ->requiresConfirmation()
                 ->modalHeading('Nuevo Gasto')
@@ -160,8 +138,8 @@ class CashRegister extends Page implements HasTable, HasForms, HasActions
                     $this->customNotification('success', 'Gasto registrado', "Gasto de \${$data['amount']} registrado correctamente");
                 }),
             Action::make('registerIncome')->label('Ingreso')
-                ->color('success')->icon('heroicon-o-plus-circle')
-                ->hidden(fn() => !$this->existsDay)
+                ->color('success')->icon('heroicon-s-plus')
+                ->hidden(fn() => !$this->existsDay || $this->isHistoryDay)
                 ->schema($this->getFormExpense('Pago'))
                 ->requiresConfirmation()
                 ->modalHeading('Nuevo Ingreso')
@@ -172,8 +150,8 @@ class CashRegister extends Page implements HasTable, HasForms, HasActions
                     $this->customNotification('success', 'Ingreso registrado', "Ingreso de \${$data['amount']} registrado correctamente");
                 }),
             Action::make('registerWithdrawal')->label('Retiro')
-                ->color('warning')->icon('heroicon-o-plus-circle')
-                //->hidden(fn() => !$this->existsDay)
+                ->color('warning')->icon('heroicon-s-minus')
+                ->hidden(fn() => !$this->existsDay || $this->isHistoryDay)
                 ->schema($this->getFormExpense('Retiro'))
                 ->requiresConfirmation()
                 ->modalHeading('Nuevo Retiro')
@@ -189,10 +167,9 @@ class CashRegister extends Page implements HasTable, HasForms, HasActions
 
     protected function getHeaderWidgets(): array
     {
-        if (!$this->currentDay) {
+        if (!$this->existsDay) {
             return [];
         }
-
         return [
             CashRegisterStats::class,
         ];

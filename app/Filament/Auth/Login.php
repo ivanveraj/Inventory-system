@@ -21,11 +21,8 @@ class Login extends \Filament\Auth\Pages\Login
 
     protected function getLoginFormComponent(): Component
     {
-        return TextInput::make('username')
-            ->label('Username')
-            ->required()
-            ->autocomplete()
-            ->autofocus()
+        return TextInput::make('username')->label('Usuario')
+            ->required()->autocomplete()->autofocus()
             ->extraInputAttributes(['tabindex' => 1]);
     }
 

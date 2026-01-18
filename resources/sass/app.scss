@@ -13,3 +13,13 @@
 .max-w-20 {
     max-width: 5rem;
 }
+
+.small-input-amount {
+    .fi-input-wrp {
+        width: fit-content !important;
+
+        .fi-input {
+            width: 6rem !important;
+        }
+    }
+}

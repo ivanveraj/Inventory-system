@@ -4,18 +4,20 @@ namespace App\Filament\Pages;
 
 use App\Filament\Pages\Dashboard;
 use App\Http\Traits\GeneralTrait;
-use App\Http\Traits\NotificationTrait;
+use App\Traits\NotificationTrait;
 use App\Http\Traits\SaleTrait;
 use App\Http\Traits\SettingTrait;
 use App\Http\Traits\TableTrait;
 use App\Models\SaleTable;
 use App\Tables\Columns\ProductsColumn;
+use App\Enums\TableType;
 use Carbon\Carbon;
 use Filament\Actions\Action as ActionsAction;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
@@ -23,6 +25,7 @@ use Livewire\Attributes\On;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Forms\Components\TextInput;
+use App\Filament\Pages\CashRegister;
 
 class Sales extends Page implements HasTable, HasForms, HasActions
 {
@@ -38,6 +41,9 @@ class Sales extends Page implements HasTable, HasForms, HasActions
     public function mount()
     {
         $this->day = getExistDay();
+        if (!$this->day) {
+            return redirect()->to(CashRegister::getUrl());
+        }
         $settings = $this->getSettings();
         $this->minPrice = $settings['PrecioMinimo'];
         $this->minTime = $settings['TiempoMinimo'];
@@ -61,20 +67,17 @@ class Sales extends Page implements HasTable, HasForms, HasActions
                         ->hintIcon(...hint_info_tooltip('Este es el dinero base para el día siguiente. Se usará para calcular el saldo de la caja al finalizar el día.'))
                 ])
                 ->action(function (array $data) {
-                    // Obtener todas las ventas de mesas (type 1)
                     $sales = SaleTable::where('type', 1)->get();
-
-                    // Verificar si hay alguna mesa con `start_time` activo
                     foreach ($sales as $sale) {
                         if (!is_null($sale->start_time)) {
-                            return self::customNotification('danger', 'Error', 'Debe cerrar todas las ventas de las mesas para proceder.');
+                            return self::customNotification('error', 'Error', 'Debe cerrar todas las ventas de las mesas para proceder.');
                         }
                     }
 
                     // Verificar si hay ventas generales (type 2) abiertas
                     $couldGeneral = SaleTable::where('type', 2)->first();
                     if (!is_null($couldGeneral)) {
-                        return self::customNotification('danger', 'Error', 'Debe cerrar todas las ventas generales para proceder.');
+                        return self::customNotification('error', 'Error', 'Debe cerrar todas las ventas generales para proceder.');
                     }
 
                     // Finalizar el día
@@ -104,7 +107,7 @@ class Sales extends Page implements HasTable, HasForms, HasActions
                 TextColumn::make('start_time')->label('Tiempo transcurrido')
                     ->sortable()->wrap()->alignCenter()->default('-')
                     ->formatStateUsing(function ($record) {
-                        if (!$record->start_time) {
+                        if (!$record->start_time || !$record->table?->usesTime()) {
                             return '-';
                         }
 
@@ -115,30 +118,58 @@ class Sales extends Page implements HasTable, HasForms, HasActions
                         return "{$hours}:{$minutes}:{$seconds}";
                     })
                     ->extraAttributes(function ($record) {
+                        if (!$record->table?->usesTime()) {
+                            return [
+                                'class' => 'timer-cell',
+                                'data-id' => $record->id,
+                                'data-start-time' => '-',
+                            ];
+                        }
+
                         return [
                             'class' => 'timer-cell',
                             'data-id' => $record->id,
                             'data-start-time' => $record->start_time ? strtotime($record->start_time) * 1000 : '-',
                         ];
                     }),
-                ProductsColumn::make('extras')->label('Extras'),
+                ProductsColumn::make('extras')->label('Extras')
+                    ->width('50%'),
                 TextColumn::make('id')->label('Total')
                     ->alignCenter()->sortable()
                     ->formatStateUsing(fn($record) => $this->calculateTotal($record, $this->minPrice, $this->minTime, $this->priceXHour)),
             ])
+            ->filters([
+                SelectFilter::make('table_type')
+                    ->label('Tipo de mesa')
+                    ->options([
+                        TableType::WITH_TIME->value => TableType::WITH_TIME->getLabel(),
+                        TableType::WITHOUT_TIME->value => TableType::WITHOUT_TIME->getLabel(),
+                    ])
+                    ->query(function ($query, array $data) {
+                        if (empty($data['value'])) {
+                            return $query;
+                        }
+
+                        return $query->whereHas('table', fn($tableQuery) => $tableQuery->where('type', $data['value']));
+                    }),
+            ])
             ->recordActions([
                 ActionsAction::make('startTime')->tooltip('Iniciar tiempo')
                     ->hiddenLabel()
-                    ->icon('heroicon-o-play')->color('success')->size('xl')
-                    ->hidden(fn($record) => !is_null($record->start_time))
+                    ->icon('heroicon-o-play')->color('success')->size('lg')
+                    ->hidden(fn($record) => !is_null($record->start_time) || !$record->table?->usesTime())
                     ->action(function ($record) {
                         $sale = $this->getSale($record->id);
                         if (is_null($sale)) {
-                            return self::customNotification('danger', 'Error', 'No existe ninguna venta con este identificador.');
+                            return self::customNotification('error', 'Error', 'No existe ninguna venta con este identificador.');
                         }
 
                         if ($sale->type != 1) {
-                            return self::customNotification('danger', 'Error', 'La venta no es del tipo correcto.');
+                            return self::customNotification('error', 'Error', 'La venta no es del tipo correcto.');
+                        }
+
+                        if (!$sale->table?->usesTime()) {
+                            return self::customNotification('error', 'Error', 'Esta mesa no requiere tiempo.');
                         }
 
                         $sale->start_time = now();
@@ -148,9 +179,36 @@ class Sales extends Page implements HasTable, HasForms, HasActions
 
                         return self::customNotification('success', 'Éxito', 'El tiempo se inició correctamente.');
                     }),
+                ActionsAction::make('cancelTime')->tooltip('Cancelar tiempo')
+                    ->hiddenLabel()->icon('heroicon-o-x-mark')->color('warning')->size('lg')
+                    ->hidden(function ($record) {
+                        if (!$record->table?->usesTime() || is_null($record->start_time)) {
+                            return true;
+                        }
+
+                        $minutes = DateDifference(now(), $record->start_time);
+                        return $minutes > $this->minTime;
+                    })
+                    ->requiresConfirmation()
+                    ->modalHeading('Cancelar tiempo')
+                    ->modalDescription('Se eliminará el tiempo iniciado y no se registrará ningún pago.')
+                    ->modalSubmitActionLabel('Cancelar tiempo')
+                    ->modalCancelActionLabel('Cerrar')
+                    ->action(function ($record) {
+                        $minutes = DateDifference(now(), $record->start_time);
+                        if ($minutes > $this->minTime) {
+                            return self::customNotification('error', 'Error', 'El tiempo mínimo ya se cumplió.');
+                        }
+
+                        $record->start_time = null;
+                        $record->save();
+                        $this->dispatch('stopTimer', id: $record->id);
+
+                        return self::customNotification('success', 'Éxito', 'El tiempo se canceló correctamente.');
+                    }),
                 ActionsAction::make('endTime')->tooltip('Finalizar tiempo')
                     ->hiddenLabel()->slideOver()
-                    ->icon('heroicon-o-stop')->color('danger')->size('xl')
+                    ->icon('heroicon-o-stop')->color('danger')->size('lg')
                     ->hidden(fn($record) => is_null($record->start_time) && $record->extras->count() <= 0)
                     ->modalHeading(fn($record) => 'Detalle del pago (' . ($record->table->name ?? '') . ')')
                     ->modalSubmitActionLabel('Pagado')
@@ -160,7 +218,7 @@ class Sales extends Page implements HasTable, HasForms, HasActions
                         $priceTime = 0;
                         $time = "";
 
-                        if (!is_null($record->start_time)) {
+                        if (!is_null($record->start_time) && $record->table?->usesTime()) {
                             $time = DateDifference(date('Y-m-d H:i:s'), $record->start_time);
                             if ($time < $this->minTime) {
                                 $total = $this->minPrice;
@@ -183,20 +241,6 @@ class Sales extends Page implements HasTable, HasForms, HasActions
                         $this->dispatch('refreshExtrasColumn');
                         $this->resetTable();
                     })
-            ])
-            ->emptyStateHeading('No hay un día activo')
-            ->emptyStateDescription('Para iniciar las ventas, inicia un nuevo día.')
-            ->emptyStateActions([
-                ActionsAction::make('startDay')
-                    ->label('Iniciar Día')
-                    ->icon('heroicon-o-calendar')
-                    ->color('info')
-                    ->action(function () {
-                        getDay();
-                        $this->day = true;
-                        $this->customNotification('success', 'Éxito', 'El día se inició correctamente.');
-                        $this->resetTable();
-                    }),
             ]);
     }
 

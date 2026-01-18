@@ -11,7 +11,7 @@
             </thead>
             <tbody>
                 @foreach ($extras as $extra)
-                    <tr class="border-b border-gray-700 hover:bg-gray-800 transition">
+                    <tr class="border-b border-gray-700 text-black">
                         <td class="p-2 break-words">{{ $extra->Product->name }}</td>
                         <td class="p-2 flex justify-center">{{ $extra->amount }}</td>
                         <td class="p-2 text-center">{{ formatMoney($extra->price) }}</td>

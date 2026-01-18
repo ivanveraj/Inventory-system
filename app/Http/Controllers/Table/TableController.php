@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Table;
 
 use App\Http\Controllers\Controller;
+use App\Enums\TableType;
 use App\Http\Traits\SaleTrait;
 use App\Http\Traits\TableTrait;
 use App\Models\Table;
@@ -54,9 +55,14 @@ class TableController extends Controller
     {
         $rq->validate([
             'name' => 'required|string',
+            'type' => 'nullable|in:' . TableType::WITH_TIME->value . ',' . TableType::WITHOUT_TIME->value,
         ]);
 
         $table = $this->createTable($rq->name);
+        if ($rq->filled('type')) {
+            $table->type = $rq->type;
+            $table->save();
+        }
         $this->createSaleTable($table->id, null, 1, 1, null);
 
         return AccionCorrecta('', '');
@@ -76,7 +82,8 @@ class TableController extends Controller
     {
         $rq->validate([
             'id' => 'required',
-            'name' => 'required|string'
+            'name' => 'required|string',
+            'type' => 'nullable|in:' . TableType::WITH_TIME->value . ',' . TableType::WITHOUT_TIME->value,
         ]);
 
         $table = $this->getTable($rq->id);
@@ -85,6 +92,9 @@ class TableController extends Controller
         }
 
         $table->name = $rq->name;
+        if ($rq->filled('type')) {
+            $table->type = $rq->type;
+        }
         $table->save();
 
         return AccionCorrecta('', '');

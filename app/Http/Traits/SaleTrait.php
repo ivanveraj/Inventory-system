@@ -121,7 +121,7 @@ trait SaleTrait
     public function getTotalSale($sale)
     {
         $total = 0;
-        if ($sale->type == 1 && !is_null($sale->start_time)) {
+        if ($sale->type == 1 && !is_null($sale->start_time) && $sale->table?->usesTime()) {
             $time = DateDifference(date('Y-m-d H:i:s'), $sale->start_time);
             $total = ($time < $this->getSetting('TiempoMinimo')) ? $this->getSetting('PrecioMinimo') : round(($this->getPrecioActual() / 60) * $time);
         }
@@ -137,7 +137,7 @@ trait SaleTrait
         $extras = $sale->extras;
         $total = 0;
 
-        if (!is_null($sale->start_time)) {
+        if (!is_null($sale->start_time) && $sale->table?->usesTime()) {
             $time = DateDifference(now(), $sale->start_time);
             $total = ($time < $minTime) ? $minPrice : round(($priceXHora / 60) * $time);
         }
@@ -155,7 +155,7 @@ trait SaleTrait
         $time = 0;
 
         // Calcular el precio basado en el tiempo si la venta es por tiempo
-        if (!is_null($sale->start_time) && $sale->type == 1) {
+        if (!is_null($sale->start_time) && $sale->type == 1 && $sale->table?->usesTime()) {
             $TiempoMinimo = $this->getSetting('TiempoMinimo');
             $time = DateDifference(date('Y-m-d H:i:s'), $sale->start_time);
 
@@ -193,7 +193,9 @@ trait SaleTrait
         // Eliminar la venta y registrar historial de mesas si aplica
         if ($sale->type == 1) {
             $this->deleteSaleAllTable($sale);
-            $this->addTimeHistoryTable($day->id, $sale->table_id, $time, $priceTime);
+            if ($sale->table?->usesTime()) {
+                $this->addTimeHistoryTable($day->id, $sale->table_id, $time, $priceTime);
+            }
         } else {
             $this->deleteSaleAll($sale);
         }

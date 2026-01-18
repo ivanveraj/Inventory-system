@@ -20,6 +20,7 @@ trait GeneralTrait
     public function createHistorySale($client, $total, $price_time, $time, $user_id)
     {
         return HistorySale::create([
+            'day_id' => getDay()->id,
             'client' => $client,
             'total' => $total,
             'price_time' => $price_time,

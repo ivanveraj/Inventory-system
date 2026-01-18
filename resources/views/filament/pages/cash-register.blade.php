@@ -18,12 +18,24 @@
             </div>
         </x-filament::section>
 
-        {{ $this->table }}
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div class="col-span-2">
+                <div class="mb-4">
+                    {{ $this->table }}
+                </div>
+                <div class="mb-4">
+                    @livewire('cash-movements', ['currentDay' => $currentDay->id], key('cash-movements'))
+                </div>
+            </div>
+            <div class="col-span-3">
+                @livewire('history-sales', ['currentDay' => $currentDay->id], key('history-sales'))
+            </div>
+        </div>
 
         {{-- <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="col-span-1"> --}}
-                @livewire('cash-movements', ['currentDay' => $currentDay->id])
-            {{-- </div>
+
+        {{-- </div>
             <div>
                 aa
             </div>

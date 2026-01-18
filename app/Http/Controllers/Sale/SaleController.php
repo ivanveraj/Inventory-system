@@ -133,6 +133,10 @@ class SaleController extends Controller
             return AccionIncorrecta('', '');
         }
 
+        if (!$sale->table?->usesTime()) {
+            return AccionIncorrecta('', 'Esta mesa no requiere tiempo');
+        }
+
         $sale->start_time = date("Y-m-d H:i:s");
         $sale->save();
         return AccionCorrecta('', '');
@@ -336,7 +340,7 @@ class SaleController extends Controller
         $priceTime = 0;
         $time = "";
 
-        if (!is_null($sale->start_time)) {
+        if (!is_null($sale->start_time) && $sale->table?->usesTime()) {
             $TiempoMinimo = $this->getSetting('TiempoMinimo');
             $time = DateDifference(date('Y-m-d H:i:s'), $sale->start_time);
             if ($time < $TiempoMinimo) {
@@ -382,7 +386,7 @@ class SaleController extends Controller
 
         $time = 0;
         $priceTime = 0;
-        if (!is_null($sale->start_time)) {
+        if (!is_null($sale->start_time) && $sale->table?->usesTime()) {
             $TiempoMinimo = $this->getSetting('TiempoMinimo');
             $time = DateDifference(date('Y-m-d H:i:s'), $sale->start_time);
             if ($time < $TiempoMinimo) {
