@@ -12,10 +12,11 @@ class SaleTable extends Model
         'table_id',
         'state',
         'type',
-        'client'
+        'client',
+        'payment_method',
     ];
-    protected $dates = [
-        'start_time',
+    protected $casts = [
+        'start_time' => 'datetime',
     ];
     public function table()
     {

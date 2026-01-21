@@ -25,21 +25,22 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use App\Traits\SaleTrait as TraitsSaleTrait;
 
 class GeneralSalesTable extends Component implements HasForms, HasTable, HasActions
 {
     use InteractsWithTable, InteractsWithForms, InteractsWithActions;
-    use SaleTrait, NotificationTrait,ProductTrait;
+    use SaleTrait, NotificationTrait, ProductTrait, TraitsSaleTrait;
 
     public function table(Table $table): Table
     {
         return $table
-            ->query(SaleTable::query()->where('type', 2))
+            ->query(SaleTable::query()->where('type', 2)->where('state', 0))
             ->headerActions([
                 ActionsAction::make('create')->label('Nueva venta')
                     ->icon('heroicon-s-plus')->color('primary')
                     ->action(function () {
-                        $this->createSaleTable(null, null, 1, 2, null);
+                        $this->createSaleTable(null, null, 0, 2, null);
                     })
             ])
             ->columns([
@@ -86,8 +87,12 @@ class GeneralSalesTable extends Component implements HasForms, HasTable, HasActi
                     })
                     ->modalSubmitActionLabel('Pagado')
                     ->action(function ($record) {
-                        $this->endSale($record);
+                        $receiptData = $this->endSale($record);
                         $this->resetTable();
+
+                        // Guardar e imprimir recibo
+                        session(['receipt_data' => $receiptData]);
+                        $this->dispatch('printReceipt', url: route('receipt.print'));
                     }),
                 DeleteAction::make('delete')
                     ->hiddenLabel()
@@ -123,23 +128,11 @@ class GeneralSalesTable extends Component implements HasForms, HasTable, HasActi
             ->modalSubmitActionLabel('Agregar')
             ->schema([
                 Grid::make(3)->schema([
-                    Select::make('product_id')
-                        ->label('Producto')
+                    Select::make('product_id')->label('Producto')
                         ->placeholder('Seleccione un producto')
                         ->columnSpan(2)->required()->searchable()
-                        ->options(
-                            Product::where('is_activated', 1)->get()->mapWithKeys(function ($product) {
-                                return [
-                                    $product->id => "{$product->sku} - {$product->name} (" . $product->amount . "U)",
-                                ];
-                            })
-                        )
-                        ->getSearchResultsUsing(function (string $search) {
-                            return Product::query()->where('name', 'like', "%{$search}%")->orWhere('sku', 'like', "%{$search}%")
-                                ->get()->mapWithKeys(fn($product) => [
-                                    $product->id => "{$product->sku} - {$product->name} ($" . $product->saleprice . ")",
-                                ]);
-                        }),
+                        ->options($this->getProductOptions())
+                        ->getSearchResultsUsing(fn(string $search) => $this->getProductOptionsSearch($search)),
                     TextInput::make('amount')->label('Cantidad')
                         ->numeric()->default(1)->minValue(1)->required(),
                 ])

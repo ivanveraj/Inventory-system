@@ -236,10 +236,15 @@ class Sales extends Page implements HasTable, HasForms, HasActions
                     })
                     ->modalSubmitActionLabel('Pagado')
                     ->action(function ($record) {
-                        $this->endSale($record);
+                        $receiptData = $this->endSale($record);
+                        
                         $this->dispatch('stopTimer', id: $record->id);
                         $this->dispatch('refreshExtrasColumn');
                         $this->resetTable();
+
+                        // Guardar e imprimir recibo
+                        session(['receipt_data' => $receiptData]);
+                        $this->dispatch('printReceipt', url: route('receipt.print'));
                     })
             ]);
     }

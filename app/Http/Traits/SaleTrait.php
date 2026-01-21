@@ -2,6 +2,7 @@
 
 namespace App\Http\Traits;
 
+use App\Enums\PaymentMethods;
 use App\Models\Day;
 use App\Models\Extra;
 use App\Models\ExtraHasHistoryProduct;
@@ -132,14 +133,21 @@ trait SaleTrait
         return $total;
     }
 
-    public function calculateTotal($sale, $minPrice = null, $minTime = null, $priceXHora = null)
+    public function calculateTotal($sale)
     {
         $extras = $sale->extras;
         $total = 0;
 
         if (!is_null($sale->start_time) && $sale->table?->usesTime()) {
-            $time = DateDifference(now(), $sale->start_time);
-            $total = ($time < $minTime) ? $minPrice : round(($priceXHora / 60) * $time);
+            $TiempoMinimo = $this->getSetting('TiempoMinimo');
+            $time = DateDifference(date('Y-m-d H:i:s'), $sale->start_time);
+
+            if ($time < $TiempoMinimo) {
+                $total = $this->getSetting('PrecioMinimo');
+                $time = $TiempoMinimo;
+            } else {
+                $total = round(($this->getPrecioActual() / 60) * $time);
+            }
         }
 
         // Sumar el total de los extras
@@ -147,21 +155,27 @@ trait SaleTrait
         return '$' . number_format($total, 0);
     }
 
-    public function endSale($sale)
+    public function endSale($sale): array
     {
         $total = 0;
         $priceTime = 0;
         $profit = 0;
         $time = 0;
+        $realTime = 0;
+        $minTimeApplied = false;
+        $minTimeValue = 0;
 
         // Calcular el precio basado en el tiempo si la venta es por tiempo
         if (!is_null($sale->start_time) && $sale->type == 1 && $sale->table?->usesTime()) {
             $TiempoMinimo = $this->getSetting('TiempoMinimo');
-            $time = DateDifference(date('Y-m-d H:i:s'), $sale->start_time);
+            $minTimeValue = $TiempoMinimo;
+            $realTime = DateDifference(date('Y-m-d H:i:s'), $sale->start_time);
+            $time = $realTime;
 
-            if ($time < $TiempoMinimo) {
+            if ($realTime < $TiempoMinimo) {
                 $total = $this->getSetting('PrecioMinimo');
                 $time = $TiempoMinimo;
+                $minTimeApplied = true;
             } else {
                 $total = round(($this->getPrecioActual() / 60) * $time);
             }
@@ -172,11 +186,19 @@ trait SaleTrait
         $client = ($sale->type == 1) ? ($sale->Table ? $sale->Table->name : 'Mesa X') : ($sale->client ?? 'Sin nombre');
         $historySale = $this->createHistorySale($client, 0, $priceTime, $time, Auth::id());
 
-        // Calcular el total y la ganancia por productos extra
+        // Preparar items para el recibo
+        $items = [];
         foreach ($sale->Extras as $extra) {
             $total += $extra->total;
             $profit += ($extra->product->saleprice - $extra->product->buyprice) * $extra->amount;
             $this->createHistoryProductSale($historySale->id, $extra->product_id, $extra->amount, $extra->product->saleprice);
+            
+            $items[] = [
+                'name' => $extra->name,
+                'amount' => $extra->amount,
+                'price' => $extra->price,
+                'total' => $extra->total,
+            ];
         }
 
         $profit += $priceTime;
@@ -190,6 +212,24 @@ trait SaleTrait
         $historySale->total = $total;
         $historySale->save();
 
+        // Datos del recibo antes de eliminar
+        $receiptData = [
+            'sale_id' => $sale->id,
+            'history_sale_id' => $historySale->id,
+            'client' => $client,
+            'payment_method' => PaymentMethods::from($sale->payment_method)->getLabel(),
+            'time' => $time,
+            'real_time' => $realTime,
+            'min_time_applied' => $minTimeApplied,
+            'min_time_value' => $minTimeValue,
+            'price_time' => $priceTime,
+            'start_time' => $sale->start_time ? \Carbon\Carbon::parse($sale->start_time)->format('d/m/Y H:i') : null,
+            'end_time' => now()->format('d/m/Y H:i'),
+            'items' => $items,
+            'total' => $total,
+            'date' => now()->format('d/m/Y H:i'),
+        ];
+
         // Eliminar la venta y registrar historial de mesas si aplica
         if ($sale->type == 1) {
             $this->deleteSaleAllTable($sale);
@@ -202,6 +242,8 @@ trait SaleTrait
 
         // Notificar el éxito de la operación
         $this->customNotification('success', 'Éxito', 'La venta se finalizó correctamente.');
+
+        return $receiptData;
     }
 
     public function getPrecioActual()

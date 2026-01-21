@@ -32,13 +32,29 @@ class QuickSaleForm extends Component implements HasActions, HasSchemas
 
     public function mount(): void
     {
+        $this->syncSale();
+    }
+
+    public function syncSale()
+    {
+        $sale = SaleTable::with('extras')->where('type', 2)->where('state', 0)->latest()->first();
+        if (!$sale) {
+            $sale = $this->createSaleTable(null, null, 0, 2, null);
+        }
+
+        $this->saleId = $sale->id;
         $this->data = [
-            'client' => null,
+            'client' => $sale->client,
             'payment_method' => 'efectivo',
-            'total_sale' => 0,
-            'products' => [],
+            'products' => $sale->extras->map(fn(Extra $extra) => [
+                'product_id' => $extra->product_id,
+                'amount' => $extra->amount,
+                'price' => $extra->price,
+                'total' => $extra->total,
+            ])->values()->toArray(),
+            'total_sale' => $sale->extras->sum('total'),
         ];
-        $this->loadExistingSale();
+
         $this->form->fill($this->data);
     }
 
@@ -197,41 +213,10 @@ class QuickSaleForm extends Component implements HasActions, HasSchemas
         });
     }
 
-    protected function loadExistingSale(): void
-    {
-        $sale = SaleTable::with('extras')->where('type', 2)->where('state', 3)->latest('id')->first();
-        if (!$sale) {
-            return;
-        }
-
-        $this->saleId = $sale->id;
-        $this->data['client'] = $sale->client;
-        $this->data['products'] = $sale->extras->map(fn(Extra $extra) => [
-            'product_id' => $extra->product_id,
-            'amount' => $extra->amount,
-            'price' => $extra->price,
-            'total' => $extra->total,
-        ])->values()->toArray();
-        $this->data['total_sale'] = $sale->extras->sum('total');
-    }
-
-    protected function ensureSale(): SaleTable
-    {
-        if ($this->saleId && $sale = SaleTable::find($this->saleId)) {
-            return $sale;
-        }
-
-        $sale = $this->createSaleTable(null, null, 3, 2, $this->data['client'] ?? null);
-        $this->saleId = $sale->id;
-
-        return $sale;
-    }
 
     protected function syncExtraAmount(Product $product, int $amount, ?int $previousAmount = null): bool
     {
-        $sale = $this->ensureSale();
-
-        $extra = Extra::where('sale_id', $sale->id)->where('product_id', $product->id)->first();
+        $extra = Extra::where('sale_id', $this->saleId)->where('product_id', $product->id)->first();
         $currentAmount = $previousAmount ?? ($extra?->amount ?? 0);
         $diff = $amount - $currentAmount;
 
@@ -247,7 +232,7 @@ class QuickSaleForm extends Component implements HasActions, HasSchemas
         }
 
         $extra ??= new Extra([
-            'sale_id' => $sale->id,
+            'sale_id' => $this->saleId,
             'product_id' => $product->id,
         ]);
 
@@ -260,19 +245,18 @@ class QuickSaleForm extends Component implements HasActions, HasSchemas
         return true;
     }
 
-    public function processSale(): void
+    public function processSale()
     {
         $formData = $this->form->getState();
-        $products = $formData['products'] ?? [];
-
-        if (empty($products)) {
+        $products = collect($formData['products'] ?? []);
+        if ($products->isEmpty()) {
             $this->customNotification('danger', 'Error al procesar la venta', 'Debe agregar al menos un producto.');
             return;
         }
 
         $productIds = $products->pluck('product_id')->unique()->values();
-
         $productsById = Product::whereIn('id', $productIds)->where('is_activated', 1)->get()->keyBy('id');
+        $itemsForInvoice = [];
         foreach ($products as $productData) {
             $product = $productsById->get($productData['product_id']);
             if (!$product) {
@@ -284,25 +268,31 @@ class QuickSaleForm extends Component implements HasActions, HasSchemas
                 $this->customNotification('danger', 'Error al procesar la venta', "El producto {$product->name} no tiene suficiente stock.");
                 return;
             }
+
+            $itemsForInvoice[] = [
+                'name' => $product->name,
+                'amount' => $productData['amount'],
+                'total' => $product->saleprice * $productData['amount'],
+            ];
         }
 
         $sale = SaleTable::findOrFail($this->saleId);
-        $sale->client = $formData['client'];
-        $sale->payment_method = $formData['payment_method'];
-        $sale->save();
+        $sale->update([
+            'client' => $formData['client'],
+            'payment_method' => $formData['payment_method']->value,
+            'state' => 1,
+        ]);
 
+        $receiptData = $this->endSale($sale);
+        
+        // Agregar/sobreescribir campos específicos de venta rápida
+        $receiptData['payment_method'] = $formData['payment_method']->getLabel();
+        $receiptData['sale_random_id'] = now()->format('Ymd') . '-' . str_pad($receiptData['sale_id'], 5, '0', STR_PAD_LEFT);
 
-        $this->endSale($sale);
-        $this->saleId = null;
+        session(['receipt_data' => $receiptData]);
+        $this->dispatch('printReceipt', url: route('receipt.print'));
 
-        $this->data = [
-            'client' => null,
-            'payment_method' => 'efectivo',
-            'products' => [],
-            'total_sale' => 0,
-        ];
-
-        $this->form->fill($this->data);
+        $this->syncSale();
     }
 
     public function render()

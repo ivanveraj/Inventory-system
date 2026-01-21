@@ -29,6 +29,9 @@ use App\Filament\Resources\Products\ProductResource;
 use Filament\Navigation\NavigationGroup;
 use App\Filament\Resources\Settings\SettingResource;
 use App\Filament\Resources\TableResource;
+use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
+use Illuminate\Support\Facades\Blade;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -96,6 +99,18 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn () => Blade::render('
+                    <script>
+                        document.addEventListener("livewire:initialized", () => {
+                            Livewire.on("printReceipt", (data) => {
+                                window.open(data.url, "_blank", "width=300,height=600");
+                            });
+                        });
+                    </script>
+                ')
+            );
     }
 }

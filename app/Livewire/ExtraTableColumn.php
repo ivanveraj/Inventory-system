@@ -18,11 +18,12 @@ use Filament\Forms\Contracts\HasForms;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Filament\Actions\Action;
+use App\Traits\SaleTrait as TraitsSaleTrait;
 
 class ExtraTableColumn extends Component implements HasForms, HasActions
 {
     use InteractsWithActions, InteractsWithForms;
-    use NotificationTrait, ProductTrait, SaleTrait;
+    use NotificationTrait, ProductTrait, SaleTrait, TraitsSaleTrait;
 
     public $saleId, $sale, $extras;
 
@@ -41,19 +42,8 @@ class ExtraTableColumn extends Component implements HasForms, HasActions
                         ->label('Producto')
                         ->placeholder('Seleccione un producto')
                         ->columnSpan(2)->required()->searchable()
-                        ->options(
-                            Product::where('is_activated', 1)->where('amount', '>', 0)->get()->mapWithKeys(function ($product) {
-                                return [
-                                    $product->id => "{$product->sku} - {$product->name} (" . $product->amount . "U)",
-                                ];
-                            })
-                        )
-                        ->getSearchResultsUsing(function (string $search) {
-                            return Product::query()->where('name', 'like', "%{$search}%")->orWhere('sku', 'like', "%{$search}%")
-                                ->get()->mapWithKeys(fn($product) => [
-                                    $product->id => "{$product->sku} - {$product->name} (" . $product->amount . "U)",
-                                ]);
-                        }),
+                        ->options($this->getProductOptions())
+                        ->getSearchResultsUsing(fn(string $search) => $this->getProductOptionsSearch($search)),
                     TextInput::make('amount')->label('Cantidad')
                         ->numeric()->default(1)->minValue(1)->required(),
                 ])
