@@ -29,17 +29,12 @@
             </div>
             <div class="col-span-3">
                 @livewire('history-sales', ['currentDay' => $currentDay->id], key('history-sales'))
+
+                <div class="my-4">
+                    @livewire('products-sold-summary', ['dayId' => $currentDay->id], key('products-sold-summary'))
+                </div>
             </div>
         </div>
-
-        {{-- <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="col-span-1"> --}}
-
-        {{-- </div>
-            <div>
-                aa
-            </div>
-        </div> --}}
     @else
         <div class="text-center py-12">
             <div class="max-w-md mx-auto">
