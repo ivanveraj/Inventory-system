@@ -125,7 +125,7 @@
 
 <body>
     <div class="logo-container">
-        <img src="{{ asset('img/zona-8-logo.jpg') }}" alt="Logo" class="logo" width="100" height="100">
+        <img src="{{ asset('img/billarcity.png') }}" alt="Logo" class="logo" width="100" height="100">
     </div>
     <div class="header">
         <h2>Venta #{{ $data['sale_random_id'] ?? ($data['history_sale_id'] ?? ($data['sale_id'] ?? '-')) }}</h2>
