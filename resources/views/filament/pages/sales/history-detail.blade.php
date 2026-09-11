@@ -23,7 +23,13 @@
     @endif
 
     <div class="flex justify-end items-center mt-6">
-        <h2 class="text-lg font-bold">Tiempo: {{ $time }} (minutos) = {{ formatMoney($priceTime) }}</h2>
+        @if ($time)
+            @if (($priceTime ?? 0) > 0)
+                <h2 class="text-lg font-bold">Tiempo: {{ $time }} (minutos) = {{ formatMoney($priceTime) }}</h2>
+            @else
+                <h2 class="text-lg font-bold">Tiempo: {{ $time }} (minutos)</h2>
+            @endif
+        @endif
     </div>
     <div class="flex justify-end items-center mt-4">
         <h2 class="text-lg font-bold text-danger-500">Total a pagar: {{ formatMoney($total) }}</h2>

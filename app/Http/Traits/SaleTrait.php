@@ -121,67 +121,86 @@ trait SaleTrait
 
     public function getTotalSale($sale)
     {
-        $total = 0;
-        if ($sale->type == 1 && !is_null($sale->start_time) && $sale->table?->usesTime()) {
-            $time = DateDifference(date('Y-m-d H:i:s'), $sale->start_time);
-            $total = ($time < $this->getSetting('TiempoMinimo')) ? $this->getSetting('PrecioMinimo') : round(($this->getPrecioActual() / 60) * $time);
+        $productsTotal = 0;
+        foreach ($this->getExtrasSale($sale->id) as $extra) {
+            $productsTotal += $extra->saleprice * $extra->amount;
         }
 
-        foreach ($this->getExtrasSale($sale->id) as $extra) {
-            $total += $extra->saleprice * $extra->amount;
-        }
-        return $total;
+        $timeCharge = $this->resolveTimeCharge($sale, $productsTotal);
+
+        return $timeCharge['price_time'] + $productsTotal;
     }
 
     public function calculateTotal($sale)
     {
-        $extras = $sale->extras;
-        $total = 0;
+        $productsTotal = $sale->extras->sum('total');
+        $timeCharge = $this->resolveTimeCharge($sale, $productsTotal);
+        $total = $timeCharge['price_time'] + $productsTotal;
 
-        if (!is_null($sale->start_time) && $sale->table?->usesTime()) {
-            $TiempoMinimo = $this->getSetting('TiempoMinimo');
-            $time = DateDifference(date('Y-m-d H:i:s'), $sale->start_time);
+        return '$' . number_format($total, 0);
+    }
 
-            if ($time < $TiempoMinimo) {
-                $total = $this->getSetting('PrecioMinimo');
-                $time = $TiempoMinimo;
-            } else {
-                $total = round(($this->getPrecioActual() / 60) * $time);
-            }
+    /**
+     * Calcula duración y cobro de tiempo. Si productos >= MontoGratisTiempo, no cobra tiempo.
+     *
+     * @return array{time: int|float, real_time: int|float, price_time: float|int, min_time_applied: bool, min_time_value: mixed, time_free: bool}
+     */
+    public function resolveTimeCharge($sale, $productsTotal = null): array
+    {
+        $result = [
+            'time' => 0,
+            'real_time' => 0,
+            'price_time' => 0,
+            'min_time_applied' => false,
+            'min_time_value' => 0,
+            'time_free' => false,
+        ];
+
+        if (is_null($sale->start_time) || (int) ($sale->type ?? 1) !== 1 || !$sale->table?->usesTime()) {
+            return $result;
         }
 
-        // Sumar el total de los extras
-        $total += $extras->sum('total');
-        return '$' . number_format($total, 0);
+        if ($productsTotal === null) {
+            $productsTotal = $sale->Extras->sum('total');
+        }
+
+        $realTime = DateDifference(date('Y-m-d H:i:s'), $sale->start_time);
+        $result['real_time'] = $realTime;
+        $result['time'] = $realTime;
+
+        $threshold = (float) $this->getSetting('MontoGratisTiempo');
+        if ($threshold > 0 && (float) $productsTotal >= $threshold) {
+            $result['time_free'] = true;
+
+            return $result;
+        }
+
+        $tiempoMinimo = $this->getSetting('TiempoMinimo');
+        $result['min_time_value'] = $tiempoMinimo;
+
+        if ($realTime < $tiempoMinimo) {
+            $result['price_time'] = $this->getSetting('PrecioMinimo');
+            $result['time'] = $tiempoMinimo;
+            $result['min_time_applied'] = true;
+        } else {
+            $result['price_time'] = round(($this->getPrecioActual() / 60) * $realTime);
+        }
+
+        return $result;
     }
 
     public function endSale($sale): array
     {
-        $total = 0;
-        $priceTime = 0;
         $profit = 0;
-        $time = 0;
-        $realTime = 0;
-        $minTimeApplied = false;
-        $minTimeValue = 0;
+        $productsTotal = $sale->Extras->sum('total');
+        $timeCharge = $this->resolveTimeCharge($sale, $productsTotal);
 
-        // Calcular el precio basado en el tiempo si la venta es por tiempo
-        if (!is_null($sale->start_time) && $sale->type == 1 && $sale->table?->usesTime()) {
-            $TiempoMinimo = $this->getSetting('TiempoMinimo');
-            $minTimeValue = $TiempoMinimo;
-            $realTime = DateDifference(date('Y-m-d H:i:s'), $sale->start_time);
-            $time = $realTime;
-
-            if ($realTime < $TiempoMinimo) {
-                $total = $this->getSetting('PrecioMinimo');
-                $time = $TiempoMinimo;
-                $minTimeApplied = true;
-            } else {
-                $total = round(($this->getPrecioActual() / 60) * $time);
-            }
-
-            $priceTime = $total;
-        }
+        $time = $timeCharge['time'];
+        $realTime = $timeCharge['real_time'];
+        $priceTime = $timeCharge['price_time'];
+        $minTimeApplied = $timeCharge['min_time_applied'];
+        $minTimeValue = $timeCharge['min_time_value'];
+        $total = $priceTime;
 
         $client = ($sale->type == 1) ? ($sale->Table ? $sale->Table->name : 'Mesa X') : ($sale->client ?? 'Sin nombre');
         $historySale = $this->createHistorySale($client, 0, $priceTime, $time, Auth::id());
@@ -192,7 +211,7 @@ trait SaleTrait
             $total += $extra->total;
             $profit += ($extra->product->saleprice - $extra->product->buyprice) * $extra->amount;
             $this->createHistoryProductSale($historySale->id, $extra->product_id, $extra->amount, $extra->product->saleprice);
-            
+
             $items[] = [
                 'name' => $extra->name,
                 'amount' => $extra->amount,
@@ -223,6 +242,7 @@ trait SaleTrait
             'min_time_applied' => $minTimeApplied,
             'min_time_value' => $minTimeValue,
             'price_time' => $priceTime,
+            'time_free' => $timeCharge['time_free'],
             'start_time' => $sale->start_time ? \Carbon\Carbon::parse($sale->start_time)->format('d/m/Y H:i') : null,
             'end_time' => now()->format('d/m/Y H:i'),
             'items' => $items,

@@ -27,7 +27,11 @@
         @if ($sale->type == 1 && $sale->start_time)
             <div>
                 <h2>Hora Inicio {{ $sale->start_time }}</h2>
-                <h2 class="text-lg font-bold">Tiempo: {{ $time }} (minutos) = {{ formatMoney($priceTime) }}</h2>
+                @if (!empty($timeFree) || ($priceTime ?? 0) <= 0)
+                    <h2 class="text-lg font-bold">Tiempo: {{ $time ?? '' }} (minutos)</h2>
+                @else
+                    <h2 class="text-lg font-bold">Tiempo: {{ $time ?? '' }} (minutos) = {{ formatMoney($priceTime) }}</h2>
+                @endif
             </div>
         @endif
     </div>

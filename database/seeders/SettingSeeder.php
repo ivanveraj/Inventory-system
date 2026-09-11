@@ -22,5 +22,6 @@ class SettingSeeder extends Seeder
         $this->addSetting('Time', 'PorcentajeMinimoGanancia', 30, 'Porcentaje mínimo de ganancia que debe tener un producto. Se utiliza para validar que los precios de venta mantengan un margen de ganancia adecuado sobre el precio de compra.');
         $this->addSetting('Time', 'PrecioHoraSecundario', 3000, 'Precio por hora que se aplica durante el horario secundario (desde las 07:00 hasta la hora de cambio). Este es el precio más bajo por hora.');
         $this->addSetting('Time', 'HoraCambio', '16:00:00', 'Hora en formato 24 horas (HH:mm:ss) en la que cambia el precio de hora secundario a hora principal. Después de esta hora se aplica el precio principal hasta las 07:00 del día siguiente.');
+        $this->addSetting('Time', 'MontoGratisTiempo', 200000, 'Monto mínimo en productos de una venta para no cobrar el tiempo. Si el total de productos es mayor o igual a este valor, se registra la duración pero el precio del tiempo es 0 y no suma al total.');
     }
 }

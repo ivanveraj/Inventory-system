@@ -38,10 +38,10 @@ class HistorySales extends Component implements HasActions, HasSchemas, HasTable
                 TextColumn::make('client')->label('Cliente')
                     ->sortable()->searchable(),
                 TextColumn::make('time')->label('Tiempo')
-                    ->formatStateUsing(fn($state) => $state . ' min')
+                    ->formatStateUsing(fn($state) => $state ? $state . ' min' : '-')
                     ->toggleable()->sortable()->alignCenter(),
                 TextColumn::make('price_time')->label('$ Tiempo')
-                    ->formatStateUsing(fn($state) => formatMoney($state))
+                    ->formatStateUsing(fn($state) => !$state ? '-' : formatMoney($state))
                     ->toggleable()->sortable()->alignCenter(),
                 TextColumn::make('total')->label('Total')
                     ->formatStateUsing(fn($state) => formatMoney($state))
@@ -62,7 +62,8 @@ class HistorySales extends Component implements HasActions, HasSchemas, HasTable
                             TextEntry::make('time')->label('Tiempo')
                                 ->formatStateUsing(fn($state) => !$state ? '-' : $state . ' min'),
                             TextEntry::make('price_time')->label('Precio tiempo')
-                                ->formatStateUsing(fn($state) => !$state ? '-' : formatMoney($state)),
+                                ->formatStateUsing(fn($state) => !$state ? '-' : formatMoney($state))
+                                ->visible(fn($record) => (float) $record->price_time > 0),
                             RepeatableEntry::make('products')->label('Productos')
                                 ->columnSpanFull()
                                 ->table([

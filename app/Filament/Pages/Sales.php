@@ -214,25 +214,20 @@ class Sales extends Page implements HasTable, HasForms, HasActions
                     ->modalSubmitActionLabel('Pagado')
                     ->modalCancelActionLabel('Cerrar')
                     ->modalContent(function ($record) {
-                        $total = 0;
-                        $priceTime = 0;
-                        $time = "";
+                        $productsTotal = $record->Extras->sum('total');
+                        $timeCharge = $this->resolveTimeCharge($record, $productsTotal);
+                        $time = $timeCharge['time'] ?: '';
+                        $priceTime = $timeCharge['price_time'];
+                        $total = $priceTime + $productsTotal;
 
-                        if (!is_null($record->start_time) && $record->table?->usesTime()) {
-                            $time = DateDifference(date('Y-m-d H:i:s'), $record->start_time);
-                            if ($time < $this->minTime) {
-                                $total = $this->minPrice;
-                            } else {
-                                $total = round(($this->priceXHour / 60) * $time);
-                            }
-                            $priceTime = $total;
-                        }
-
-                        foreach ($record->Extras as $extra) {
-                            $total += $extra->total;
-                        }
-
-                        return view('filament.pages.sales.detail', ['sale' => $record, 'extras' => $record->Extras, 'time' => $time, 'total' => $total, 'priceTime' => $priceTime]);
+                        return view('filament.pages.sales.detail', [
+                            'sale' => $record,
+                            'extras' => $record->Extras,
+                            'time' => $time,
+                            'total' => $total,
+                            'priceTime' => $priceTime,
+                            'timeFree' => $timeCharge['time_free'],
+                        ]);
                     })
                     ->modalSubmitActionLabel('Pagado')
                     ->action(function ($record) {

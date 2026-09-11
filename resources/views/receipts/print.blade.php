@@ -148,14 +148,16 @@
                 <p><strong>Fin:</strong> {{ $data['end_time'] }}</p>
             @endif
             <p><strong>Duración:</strong> {{ $data['time'] }} minutos</p>
-            <p><strong>Precio Tiempo:</strong> {{ formatMoney($data['price_time'] ?? 0) }}</p>
+            @if (empty($data['time_free']) && ($data['price_time'] ?? 0) > 0)
+                <p><strong>Precio Tiempo:</strong> {{ formatMoney($data['price_time']) }}</p>
 
-            @if (!empty($data['min_time_applied']) && $data['min_time_applied'])
-                <div style="margin-top: 6px; padding: 4px; border: 1px solid #000; font-size: 10px;">
-                    <p style="margin: 0;"><strong>Nota:</strong> Tiempo jugado: {{ $data['real_time'] ?? 0 }} min.</p>
-                    <p style="margin: 0;">El tiempo mínimo es {{ $data['min_time_value'] ?? 0 }} min.</p>
-                    <p style="margin: 0;">Se cobra el precio mínimo.</p>
-                </div>
+                @if (!empty($data['min_time_applied']) && $data['min_time_applied'])
+                    <div style="margin-top: 6px; padding: 4px; border: 1px solid #000; font-size: 10px;">
+                        <p style="margin: 0;"><strong>Nota:</strong> Tiempo jugado: {{ $data['real_time'] ?? 0 }} min.</p>
+                        <p style="margin: 0;">El tiempo mínimo es {{ $data['min_time_value'] ?? 0 }} min.</p>
+                        <p style="margin: 0;">Se cobra el precio mínimo.</p>
+                    </div>
+                @endif
             @endif
         </div>
     @endif
